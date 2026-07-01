@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full bg-slate-50 text-slate-900">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>水質淨化系統保養紀錄管理</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter & Noto Sans TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        water: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            900: '#0c4a6e'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col font-sans transition-all duration-300">
+
+    <!-- HEADER -->
+    <header class="bg-gradient-to-r from-water-900 via-indigo-950 to-slate-950 text-white shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center space-x-4">
+                    <div class="bg-water-500/20 p-3 rounded-2xl border border-water-500/30">
+                        <i class="fa-solid fa-droplet text-3xl text-sky-400"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-sky-200 bg-clip-text text-transparent">
+                            RO純水機與軟水機保養紀錄系統
+                        </h1>
+                        <p class="text-xs text-slate-400 mt-1">完全對照原始圖片附件表格規格 • 本地安全儲存 • GitHub Gist 雲端雙向備份</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center space-x-3 text-sm flex-wrap gap-2">
+                    <span id="cloud-status-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">
+                        <span class="w-1.5 h-1.5 mr-1.5 bg-slate-500 rounded-full"></span>
+                        雲端同步：未設定
+                    </span>
+                    <button onclick="openGistModal()" class="text-xs text-sky-400 hover:text-sky-300 transition bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700">
+                        <i class="fa-solid fa-cloud-arrow-up mr-1"></i>雲端 Gist 設定
+                    </button>
+                    <button onclick="triggerResetConfirmation()" class="text-xs text-rose-400 hover:text-rose-300 transition bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700">
+                        <i class="fa-solid fa-rotate-left mr-1"></i>重置回原始範例
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        
+        <!-- 智能濾心健康度預測儀表板 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-gauge-high text-water-600"></i>
+                    智能濾心更換預警與狀態追蹤
+                </h2>
+                <span class="text-xs text-slate-400">系統自動依修訂之最後更換日期計算</span>
+            </div>
+            
+            <!-- RO純水機壽命統計 -->
+            <div id="ro-dashboard-section" class="space-y-3">
+                <p class="text-xs font-semibold text-water-700 bg-water-50 px-3 py-1 rounded-md inline-block">RO純水機 (image_9e727d.png 規格)</p>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-4" id="ro-status-grid">
+                    <!-- JS 動態生成 -->
+                </div>
+            </div>
+
+            <!-- 軟水機壽命統計 -->
+            <div id="softener-dashboard-section" class="space-y-3 pt-2">
+                <p class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-md inline-block">軟水機水機 (image_9e729a.png 規格)</p>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="softener-status-grid">
+                    <!-- JS 動態生成 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 主要資料管理區 -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                <!-- Tabs 分頁切換 -->
+                <nav id="tabs-container" class="flex flex-col sm:flex-row gap-2" aria-label="Tabs">
+                    <button id="tab-ro-btn" onclick="switchTab('RO純水機保養紀錄')" class="px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-water-600 text-white shadow-md shadow-water-200">
+                        <i class="fa-solid fa-glass-water"></i> <span>RO純水機保養紀錄 (5道過濾)</span>
+                    </button>
+                    <button id="tab-softener-btn" onclick="switchTab('軟水機水機保養紀錄')" class="px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        <i class="fa-solid fa-soap"></i> <span>軟水機水機保養紀錄</span>
+                    </button>
+                </nav>
+
+                <!-- 操作工具列 -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                    <!-- 搜尋欄 -->
+                    <div class="relative min-w-[180px]">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="搜尋日期或紀錄..." class="w-full pl-9 pr-4 py-2 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-water-500 transition-all">
+                    </div>
+
+                    <!-- 手動新增按鈕 -->
+                    <button onclick="openAddModal()" class="inline-flex items-center justify-center px-4 py-2 bg-water-600 hover:bg-water-500 text-white rounded-xl text-sm font-medium transition shadow-sm hover:shadow">
+                        <i class="fa-solid fa-plus mr-1.5"></i>手動新增紀錄
+                    </button>
+
+                    <button onclick="exportToCSV()" class="inline-flex items-center justify-center px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-medium transition shadow-sm hover:shadow">
+                        <i class="fa-solid fa-file-csv mr-1.5"></i>匯出 CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- 數據表格區 -->
+            <div class="overflow-x-auto rounded-xl border border-slate-200">
+                <table class="min-w-full divide-y divide-slate-200 text-center text-sm" id="data-table">
+                    <thead class="bg-slate-50" id="table-head">
+                        <!-- 表頭由 JS 依規格填充 -->
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 bg-white text-center" id="table-body">
+                        <!-- 資料列由 JS 依規格填充 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 查無資料提示 -->
+            <div id="no-data-alert" class="hidden flex flex-col items-center justify-center py-12 text-slate-400">
+                <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
+                <p class="text-sm">尚未有任何手動保養紀錄，請點擊「手動新增紀錄」開始登錄！</p>
+            </div>
+
+            <!-- 分頁與數量統計 -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                <span class="text-xs text-slate-500 font-medium" id="table-stats-info">
+                    顯示第 1 至 5 筆，共 0 筆資料
+                </span>
+                <div class="inline-flex gap-2" id="pagination-controls">
+                    <!-- 分頁控制 -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 彈出式手動編輯/新增模組 -->
+    <div id="record-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <!-- 模組 header -->
+            <div id="modal-header-bg" class="bg-water-900 text-white p-5 flex items-center justify-between">
+                <h3 id="modal-title" class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>手動新增：RO純水機保養紀錄</span>
+                </h3>
+                <button onclick="closeModal()" class="text-slate-300 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- 模組表單內容 -->
+            <form id="record-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4 overflow-y-auto flex-grow text-left">
+                <input type="hidden" id="edit-index" value="-1">
+                
+                <div class="space-y-1">
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">保養日期 <span class="text-rose-500">*</span></label>
+                    <input type="date" id="form-field-date" required class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-water-500 focus:outline-none">
+                </div>
+
+                <div class="border-t border-slate-100 pt-3">
+                    <p class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">各過濾道狀態標記 (勾選自動填入 "✓"，亦可輸入說明文字)</p>
+                    <div id="form-fields-container" class="space-y-4">
+                        <!-- JS 動態生成對應表格欄位的輸入框 -->
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-medium transition">
+                        取消
+                    </button>
+                    <button type="submit" class="px-5 py-2 bg-water-600 hover:bg-water-500 text-white rounded-xl text-sm font-medium transition shadow-sm">
+                        確認儲存
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- GitHub Gist 同步模組 -->
+    <div id="gist-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+            <div class="bg-slate-900 text-white p-5 flex items-center justify-between">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-cloud"></i>
+                    <span>GitHub Gist 雲端同步設定</span>
+                </h3>
+                <button onclick="closeGistModal()" class="text-slate-300 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6 space-y-4 overflow-y-auto flex-grow text-left text-sm">
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 p-3.5 rounded-xl space-y-1.5">
+                    <p class="font-bold flex items-center gap-1.5 text-xs">
+                        <i class="fa-solid fa-circle-info"></i>這是什麼？
+                    </p>
+                    <p class="text-xs text-blue-700 leading-relaxed">
+                        您可以將所有手動保養紀錄備份至您專屬的 GitHub Gist。設定後即可在多個瀏覽器或手機上無痛同步保養紀錄，不必擔心快取遺失。
+                    </p>
+                </div>
+
+                <div class="space-y-3">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">GitHub Personal Access Token (PAT) <span class="text-rose-500">*</span></label>
+                        <input type="password" id="gist-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-slate-500 focus:outline-none">
+                        <p class="text-[10px] text-slate-400">
+                            需具備 <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">gist</code> 寫入權限。可前往 GitHub Settings 生成。
+                        </p>
+                    </div>
+
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Gist ID (選填)</label>
+                        <input type="text" id="gist-id" placeholder="如果不填，點擊「自動建檔」會為您建立全新的 Gist" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-slate-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex flex-col gap-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="saveGistConfig()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+                            <i class="fa-solid fa-floppy-disk mr-1"></i>儲存憑證
+                        </button>
+                        <button onclick="createNewGist()" class="w-full py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                            <i class="fa-solid fa-folder-plus mr-1"></i>一鍵自動建檔
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="pullFromGist()" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                            <i class="fa-solid fa-cloud-arrow-down mr-1"></i>從 Gist 下載覆蓋
+                        </button>
+                        <button onclick="pushToGist()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1"></i>上傳備份至 Gist
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 自訂的高質感確認視窗 (完全取代原生 confirm) -->
+    <div id="confirm-modal" class="fixed inset-0 z-[60] hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-sm w-full overflow-hidden transform transition-all p-6 text-center space-y-4">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-rose-50 border border-rose-100">
+                <i class="fa-solid fa-triangle-exclamation text-rose-500 text-xl animate-bounce"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 id="confirm-title" class="text-base font-bold text-slate-800">確認執行操作？</h3>
+                <p id="confirm-message" class="text-xs text-slate-500 leading-relaxed">此項操作無法還原，請確認您要繼續執行。</p>
+            </div>
+            <div class="flex items-center justify-center gap-2">
+                <button id="confirm-cancel-btn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">
+                    取消
+                </button>
+                <button id="confirm-ok-btn" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition shadow-sm shadow-rose-100">
+                    確認
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="bg-white border-t border-slate-100 text-slate-500 py-6 text-center text-xs mt-auto">
+        <div class="max-w-7xl mx-auto px-4 space-y-1">
+            <p>© 2026 水質淨化管理系統. All Rights Reserved.</p>
+            <p class="font-mono text-slate-400">💧 精確相容 image_9e727d.png 與 image_9e729a.png 本地與 Gist 備份規格 💧</p>
+        </div>
+    </footer>
+
+    <script>
+        // 1. 定義圖片附件中完全精確的欄位架構與週期對照
+        const RO_FIELDS = {
+            "date": "日期",
+            "ch1": "第1道 ADD-PP棉質濾心 (3個月)",
+            "ch2": "第2道 ADD-CTO活性碳濾心 (6個月)",
+            "ch3": "第3道 ADD-CTO活性碳濾心 (6個月)",
+            "ch4": "第4道 ADD-250加侖RO膜濾心 (1-2年)",
+            "ch5": "第5道 T33椰殼活性碳濾心 (1年)"
+        };
+
+        const RO_CYCLES = {
+            "ch1": 3,      // 3個月
+            "ch2": 6,      // 6個月
+            "ch3": 6,      // 6個月
+            "ch4": 18,     // 1.5年 (中間值)
+            "ch5": 12      // 1年
+        };
+
+        const SOFTENER_FIELDS = {
+            "date": "日期",
+            "salt": "鹽錠",
+            "pp": "PP濾心 (6個月)",
+            "cto": "CTO活性碳濾心 (6個月)"
+        };
+
+        const SOFTENER_CYCLES = {
+            "pp": 6,       // 6個月
+            "cto": 6       // 6個月
+        };
+
+        // 高仿真預設初始化數據 (符合水處理系統 2026 年初保養歷史)
+        const DEFAULT_RECORDS = {
+            "RO純水機保養紀錄": [
+                {"date": "2026-06-15", "ch1": "✓", "ch2": "✓", "ch3": "✓", "ch4": "更換加壓膜", "ch5": "✓"},
+                {"date": "2026-03-10", "ch1": "✓", "ch2": "清洗外殼", "ch3": "", "ch4": "", "ch5": ""},
+                {"date": "2025-12-05", "ch1": "✓", "ch2": "✓", "ch3": "✓", "ch4": "", "ch5": "✓"},
+                {"date": "2025-09-02", "ch1": "✓", "ch2": "", "ch3": "", "ch4": "", "ch5": ""}
+            ],
+            "軟水機水機保養紀錄": [
+                {"date": "2026-06-01", "salt": "補充鹽錠15kg", "pp": "✓", "cto": "✓"},
+                {"date": "2026-04-12", "salt": "添加1包", "pp": "", "cto": ""},
+                {"date": "2025-11-20", "salt": "手動加滿", "pp": "✓", "cto": "✓"}
+            ]
+        };
+
+        // 全域狀態管理 (Reactive Application State)
+        let state = {
+            activeTab: "RO純水機保養紀錄",
+            records: {},
+            searchQuery: "",
+            currentPage: 1,
+            pageSize: 10
+        };
+
+        // Gist 配置
+        let gistConfig = {
+            token: "",
+            id: ""
+        };
+
+        // 初始化
+        window.onload = function() {
+            initApp();
+        };
+
+        function initApp() {
+            // 載入本地紀錄
+            const cached = localStorage.getItem("purifier_records_v1");
+            if (cached) {
+                state.records = JSON.parse(cached);
+            } else {
+                state.records = JSON.parse(JSON.stringify(DEFAULT_RECORDS));
+                saveData();
+            }
+
+            // 載入 Gist 配置
+            const cachedGist = localStorage.getItem("gist_sync_config_v1");
+            if (cachedGist) {
+                gistConfig = JSON.parse(cachedGist);
+            }
+            updateGistBadge();
+            updateView();
+        }
+
+        function saveData() {
+            localStorage.setItem("purifier_records_v1", JSON.stringify(state.records));
+        }
+
+        // 自訂確認視窗觸發器
+        let activeConfirmCallback = null;
+
+        function showCustomConfirm(title, message, onConfirm) {
+            document.getElementById("confirm-title").textContent = title;
+            document.getElementById("confirm-message").textContent = message;
+            document.getElementById("confirm-modal").classList.remove("hidden");
+            activeConfirmCallback = onConfirm;
+        }
+
+        // 綁定確認取消事件
+        document.getElementById("confirm-cancel-btn").onclick = function() {
+            document.getElementById("confirm-modal").classList.add("hidden");
+            activeConfirmCallback = null;
+        };
+
+        document.getElementById("confirm-ok-btn").onclick = function() {
+            document.getElementById("confirm-modal").classList.add("hidden");
+            if (typeof activeConfirmCallback === "function") {
+                activeConfirmCallback();
+            }
+            activeConfirmCallback = null;
+        };
+
+        function triggerResetConfirmation() {
+            showCustomConfirm(
+                "重置至系統範例？",
+                "您確定要清除現有紀錄並還原至系統預設的示範保養數據嗎？（您的本地變更與新增資料將會丟失）",
+                function() {
+                    state.records = JSON.parse(JSON.stringify(DEFAULT_RECORDS));
+                    state.currentPage = 1;
+                    state.searchQuery = "";
+                    document.getElementById("search-input").value = "";
+                    saveData();
+                    updateView();
+                    toast("已重置為原始表格範本！", "success");
+                }
+            );
+        }
+
+        // 根據歷史手動紀錄推算濾心剩餘壽命
+        function calculateFiltersLife() {
+            const roRecords = state.records["RO純水機保養紀錄"] || [];
+            const softRecords = state.records["軟水機水機保養紀錄"] || [];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            // 輔助函式：尋找特定欄位最後有更換/打勾標記的日期
+            function getLatestChangeDate(recordsList, fieldKey) {
+                const sorted = [...recordsList].sort((a, b) => new Date(b.date) - new Date(a.date));
+                for (let rec of sorted) {
+                    const val = rec[fieldKey];
+                    if (val && (val.trim() === "✓" || val.trim().length > 0)) {
+                        return new Date(rec.date);
+                    }
+                }
+                return null;
+            }
+
+            // 計算 RO 各道狀態
+            const roStatus = {};
+            Object.keys(RO_CYCLES).forEach(key => {
+                const lastDate = getLatestChangeDate(roRecords, key);
+                const cycleMonths = RO_CYCLES[key];
+                
+                if (!lastDate) {
+                    roStatus[key] = { lastDate: "無紀錄", daysLeft: -999, pct: 0, status: "需立即保養" };
+                } else {
+                    const nextDueDate = new Date(lastDate);
+                    nextDueDate.setMonth(nextDueDate.getMonth() + cycleMonths);
+                    
+                    const diffTime = nextDueDate.getTime() - today.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    const totalDays = cycleMonths * 30.5;
+                    let pct = Math.max(0, Math.min(100, Math.round((diffDays / totalDays) * 100)));
+                    
+                    let status = "正常";
+                    if (diffDays < 0) status = "已過期";
+                    else if (diffDays <= 15) status = "即期提醒";
+
+                    roStatus[key] = {
+                        lastDate: formatDateString(lastDate),
+                        nextDate: formatDateString(nextDueDate),
+                        daysLeft: diffDays,
+                        pct: pct,
+                        status: status
+                    };
+                }
+            });
+
+            // 計算軟水機狀態
+            const softStatus = {};
+            Object.keys(SOFTENER_CYCLES).forEach(key => {
+                const lastDate = getLatestChangeDate(softRecords, key);
+                const cycleMonths = SOFTENER_CYCLES[key];
+
+                if (!lastDate) {
+                    softStatus[key] = { lastDate: "無紀錄", daysLeft: -999, pct: 0, status: "需立即保養" };
+                } else {
+                    const nextDueDate = new Date(lastDate);
+                    nextDueDate.setMonth(nextDueDate.getMonth() + cycleMonths);
+
+                    const diffTime = nextDueDate.getTime() - today.getTime();
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                    const totalDays = cycleMonths * 30.5;
+                    let pct = Math.max(0, Math.min(100, Math.round((diffDays / totalDays) * 100)));
+
+                    let status = "正常";
+                    if (diffDays < 0) status = "已過期";
+                    else if (diffDays <= 15) status = "即期提醒";
+
+                    softStatus[key] = {
+                        lastDate: formatDateString(lastDate),
+                        nextDate: formatDateString(nextDueDate),
+                        daysLeft: diffDays,
+                        pct: pct,
+                        status: status
+                    };
+                }
+            });
+
+            return { ro: roStatus, softener: softStatus };
+        }
+
+        function formatDateString(dateObj) {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function renderDashboard() {
+            const analysis = calculateFiltersLife();
+            const roGrid = document.getElementById("ro-status-grid");
+            roGrid.innerHTML = "";
+            
+            // RO 卡片
+            Object.keys(RO_CYCLES).forEach(key => {
+                const item = analysis.ro[key];
+                const displayName = RO_FIELDS[key].replace("第", "第").split(" ")[0]; 
+                const filterDesc = RO_FIELDS[key].split(" ")[1]; 
+                
+                let badgeClass = "bg-emerald-500 text-white";
+                let textClass = "text-emerald-600";
+                let progressBg = "bg-emerald-500";
+                
+                if (item.status === "已過期") {
+                    badgeClass = "bg-rose-500 text-white animate-pulse";
+                    textClass = "text-rose-600 font-bold";
+                    progressBg = "bg-rose-500";
+                } else if (item.status === "即期提醒") {
+                    badgeClass = "bg-amber-500 text-slate-900";
+                    textClass = "text-amber-600 font-semibold";
+                    progressBg = "bg-amber-500";
+                }
+
+                const card = document.createElement("div");
+                card.className = "bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 flex flex-col justify-between hover:shadow-sm transition";
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-700">${displayName}</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-bold ${badgeClass}">${item.status}</span>
+                        </div>
+                        <p class="text-[11px] font-semibold text-slate-500 truncate" title="${filterDesc}">${filterDesc}</p>
+                    </div>
+                    
+                    <div class="mt-3 space-y-1.5">
+                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div class="h-full ${progressBg} transition-all duration-500" style="width: ${item.pct}%"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px]">
+                            <span class="text-slate-400">壽命餘 ${item.pct}%</span>
+                            <span class="${textClass}">${item.daysLeft <= -999 ? "無保養過" : (item.daysLeft < 0 ? `過期 ${Math.abs(item.daysLeft)} 天` : `${item.daysLeft} 天`)}</span>
+                        </div>
+                    </div>
+                `;
+                roGrid.appendChild(card);
+            });
+
+            // 軟水機卡片
+            const softenerGrid = document.getElementById("softener-status-grid");
+            softenerGrid.innerHTML = "";
+
+            Object.keys(SOFTENER_CYCLES).forEach(key => {
+                const item = analysis.softener[key];
+                const displayName = SOFTENER_FIELDS[key].split(" ")[0]; 
+                const filterDesc = SOFTENER_FIELDS[key];
+
+                let badgeClass = "bg-emerald-500 text-white";
+                let textClass = "text-emerald-600";
+                let progressBg = "bg-emerald-500";
+
+                if (item.status === "已過期") {
+                    badgeClass = "bg-rose-500 text-white animate-pulse";
+                    textClass = "text-rose-600 font-bold";
+                    progressBg = "bg-rose-500";
+                } else if (item.status === "即期提醒") {
+                    badgeClass = "bg-amber-500 text-slate-900";
+                    textClass = "text-amber-600 font-semibold";
+                    progressBg = "bg-amber-500";
+                }
+
+                const card = document.createElement("div");
+                card.className = "bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 flex flex-col justify-between hover:shadow-sm transition";
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-700">${displayName}</span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-bold ${badgeClass}">${item.status}</span>
+                        </div>
+                        <p class="text-[11px] font-semibold text-slate-500 truncate" title="${filterDesc}">${filterDesc}</p>
+                    </div>
+
+                    <div class="mt-3 space-y-1.5">
+                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                            <div class="h-full ${progressBg} transition-all duration-500" style="width: ${item.pct}%"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px]">
+                            <span class="text-slate-400">壽命餘 ${item.pct}%</span>
+                            <span class="${textClass}">${item.daysLeft <= -999 ? "無保養過" : (item.daysLeft < 0 ? `過期 ${Math.abs(item.daysLeft)} 天` : `${item.daysLeft} 天`)}</span>
+                        </div>
+                    </div>
+                `;
+                softenerGrid.appendChild(card);
+            });
+        }
+
+        function switchTab(tabName) {
+            state.activeTab = tabName;
+            state.currentPage = 1;
+            state.searchQuery = "";
+            document.getElementById("search-input").value = "";
+
+            const tabRo = document.getElementById("tab-ro-btn");
+            const tabSoft = document.getElementById("tab-softener-btn");
+
+            if (tabName === "RO純水機保養紀錄") {
+                tabRo.className = "px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-water-600 text-white shadow-md shadow-water-200";
+                tabSoft.className = "px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-slate-100 text-slate-600 hover:bg-slate-200";
+            } else {
+                tabRo.className = "px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-slate-100 text-slate-600 hover:bg-slate-200";
+                tabSoft.className = "px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-water-600 text-white shadow-md shadow-water-200";
+            }
+
+            updateView();
+        }
+
+        function updateView() {
+            renderDashboard();
+            renderTable();
+        }
+
+        function renderTable() {
+            const rawData = state.records[state.activeTab] || [];
+            const sortedData = [...rawData].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            let filteredData = sortedData;
+            if (state.searchQuery) {
+                const query = state.searchQuery.toLowerCase();
+                filteredData = sortedData.filter(row => {
+                    return Object.values(row).some(val => 
+                        String(val).toLowerCase().includes(query)
+                    );
+                });
+            }
+
+            const totalCount = filteredData.length;
+            const totalPages = Math.ceil(totalCount / state.pageSize) || 1;
+            if (state.currentPage > totalPages) state.currentPage = totalPages;
+
+            const startIndex = (state.currentPage - 1) * state.pageSize;
+            const paginatedData = filteredData.slice(startIndex, startIndex + state.pageSize);
+
+            const isRo = (state.activeTab === "RO純水機保養紀錄");
+            const currentFields = isRo ? RO_FIELDS : SOFTENER_FIELDS;
+
+            // 1. 表頭
+            const thead = document.getElementById("table-head");
+            thead.innerHTML = "";
+            const trHead = document.createElement("tr");
+
+            Object.keys(currentFields).forEach(key => {
+                const th = document.createElement("th");
+                th.className = "px-4 py-4 text-xs font-bold text-slate-700 bg-slate-100 border-b border-slate-200 whitespace-pre-line";
+                
+                let label = currentFields[key];
+                if (isRo && key !== "date") {
+                    label = label.replace("第", "第").replace(" ADD-", "\nADD-").replace(" (", "\n(");
+                } else if (!isRo && key !== "date" && key !== "salt") {
+                    label = label.replace(" (", "\n(");
+                }
+                th.textContent = label;
+                trHead.appendChild(th);
+            });
+
+            const thAction = document.createElement("th");
+            thAction.className = "px-4 py-4 text-xs font-bold text-slate-700 bg-slate-100 border-b border-slate-200 text-right";
+            thAction.textContent = "管理動作";
+            trHead.appendChild(thAction);
+            thead.appendChild(trHead);
+
+            // 2. 表身
+            const tbody = document.getElementById("table-body");
+            tbody.innerHTML = "";
+
+            const noDataAlert = document.getElementById("no-data-alert");
+            if (totalCount === 0) {
+                noDataAlert.classList.remove("hidden");
+            } else {
+                noDataAlert.classList.add("hidden");
+
+                paginatedData.forEach(row => {
+                    const originalIndex = rawData.indexOf(row);
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-slate-50/70 transition duration-150";
+
+                    Object.keys(currentFields).forEach(key => {
+                        const td = document.createElement("td");
+                        td.className = "px-4 py-3.5 text-sm text-slate-600 border-b border-slate-150 font-medium";
+
+                        const cellValue = row[key] || "";
+                        
+                        if (key === "date") {
+                            td.className += " font-bold text-slate-900";
+                            td.textContent = cellValue;
+                        } else {
+                            if (cellValue === "✓") {
+                                td.innerHTML = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 font-bold border border-emerald-200"><i class="fa-solid fa-check"></i></span>`;
+                            } else if (cellValue) {
+                                td.innerHTML = `<span class="inline-block px-2.5 py-1 rounded-lg bg-sky-50 text-sky-800 font-medium text-xs border border-sky-100">${cellValue}</span>`;
+                            } else {
+                                td.innerHTML = `<span class="text-slate-300">-</span>`;
+                            }
+                        }
+                        tr.appendChild(td);
+                    });
+
+                    // 編輯刪除
+                    const tdAction = document.createElement("td");
+                    tdAction.className = "px-4 py-3.5 text-sm border-b border-slate-150 text-right space-x-1 whitespace-nowrap";
+                    tdAction.innerHTML = `
+                        <button onclick="openEditModal(${originalIndex})" class="text-water-600 hover:text-water-900 transition font-semibold text-xs bg-water-50 hover:bg-water-100 px-2.5 py-1 rounded-lg">
+                            <i class="fa-solid fa-pen-to-square"></i> 編輯
+                        </button>
+                        <button onclick="triggerDeleteRecord(${originalIndex})" class="text-rose-600 hover:text-rose-900 transition font-semibold text-xs bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg">
+                            <i class="fa-solid fa-trash"></i> 刪除
+                        </button>
+                    `;
+                    tr.appendChild(tdAction);
+                    tbody.appendChild(tr);
+                });
+            }
+
+            const endIdx = Math.min(startIndex + state.pageSize, totalCount);
+            document.getElementById("table-stats-info").textContent = 
+                totalCount > 0 
+                ? `顯示第 ${startIndex + 1} 至 ${endIdx} 筆，共 ${totalCount} 筆保養歷史紀錄` 
+                : '顯示第 0 至 0 筆，共 0 筆保養歷史紀錄';
+
+            renderPaginationControls(totalPages);
+        }
+
+        function renderPaginationControls(totalPages) {
+            const container = document.getElementById("pagination-controls");
+            container.innerHTML = "";
+
+            if (totalPages <= 1) return;
+
+            const prevBtn = document.createElement("button");
+            prevBtn.className = `px-3 py-1.5 text-xs font-bold rounded-lg border ${
+                state.currentPage === 1 
+                ? "text-slate-300 border-slate-100 cursor-not-allowed" 
+                : "text-slate-600 border-slate-200 hover:bg-slate-50"
+            }`;
+            prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+            prevBtn.disabled = (state.currentPage === 1);
+            prevBtn.onclick = () => {
+                state.currentPage--;
+                renderTable();
+            };
+            container.appendChild(prevBtn);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageBtn = document.createElement("button");
+                const isCurrent = (i === state.currentPage);
+                pageBtn.className = `px-3 py-1.5 text-xs font-bold rounded-lg ${
+                    isCurrent 
+                    ? "bg-water-600 text-white shadow-sm shadow-water-200" 
+                    : "text-slate-600 border border-slate-200 hover:bg-slate-50"
+                }`;
+                pageBtn.textContent = i;
+                pageBtn.onclick = () => {
+                    state.currentPage = i;
+                    renderTable();
+                };
+                container.appendChild(pageBtn);
+            }
+
+            const nextBtn = document.createElement("button");
+            nextBtn.className = `px-3 py-1.5 text-xs font-bold rounded-lg border ${
+                state.currentPage === totalPages 
+                ? "text-slate-300 border-slate-100 cursor-not-allowed" 
+                : "text-slate-600 border-slate-200 hover:bg-slate-50"
+            }`;
+            nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+            nextBtn.disabled = (state.currentPage === totalPages);
+            nextBtn.onclick = () => {
+                state.currentPage++;
+                renderTable();
+            };
+            container.appendChild(nextBtn);
+        }
+
+        function handleSearch(val) {
+            state.searchQuery = val;
+            state.currentPage = 1;
+            renderTable();
+        }
+
+        function buildFormFields() {
+            const container = document.getElementById("form-fields-container");
+            container.innerHTML = "";
+
+            const isRo = (state.activeTab === "RO純水機保養紀錄");
+            const fields = isRo ? RO_FIELDS : SOFTENER_FIELDS;
+
+            Object.keys(fields).forEach(key => {
+                if (key === "date") return;
+
+                const fieldLabel = fields[key];
+                const fieldGroup = document.createElement("div");
+                fieldGroup.className = "p-3 bg-slate-50 rounded-xl border border-slate-200/60 space-y-2";
+
+                fieldGroup.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <label class="block text-xs font-bold text-slate-700">${fieldLabel}</label>
+                        <label class="inline-flex items-center cursor-pointer space-x-1.5">
+                            <input type="checkbox" id="checkbox-${key}" onchange="toggleCheckboxMark('${key}')" class="rounded border-slate-300 text-water-600 focus:ring-water-500 h-4 w-4">
+                            <span class="text-xs text-slate-500 font-medium">標記更換 (✓)</span>
+                        </label>
+                    </div>
+                    <input type="text" id="input-${key}" placeholder="或在此輸入其他備註..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-water-500 focus:outline-none bg-white">
+                `;
+                container.appendChild(fieldGroup);
+            });
+        }
+
+        function toggleCheckboxMark(key) {
+            const cb = document.getElementById(`checkbox-${key}`);
+            const input = document.getElementById(`input-${key}`);
+            if (cb.checked) {
+                input.value = "✓";
+                input.disabled = true;
+                input.classList.add("bg-slate-100", "text-slate-400");
+            } else {
+                input.value = "";
+                input.disabled = false;
+                input.classList.remove("bg-slate-100", "text-slate-400");
+            }
+        }
+
+        function openAddModal() {
+            const isRo = (state.activeTab === "RO純水機保養紀錄");
+            const headerBg = document.getElementById("modal-header-bg");
+            
+            if (isRo) {
+                headerBg.className = "bg-water-900 text-white p-5 flex items-center justify-between";
+            } else {
+                headerBg.className = "bg-emerald-900 text-white p-5 flex items-center justify-between";
+            }
+
+            document.getElementById("modal-title").innerHTML = `<i class="fa-solid fa-plus text-sky-400"></i> 手動登記：${state.activeTab}`;
+            document.getElementById("edit-index").value = "-1";
+            document.getElementById("record-form").reset();
+            
+            const todayStr = formatDateString(new Date());
+            document.getElementById("form-field-date").value = todayStr;
+
+            buildFormFields();
+            document.getElementById("record-modal").classList.remove("hidden");
+        }
+
+        function openEditModal(index) {
+            const isRo = (state.activeTab === "RO純水機保養紀錄");
+            const headerBg = document.getElementById("modal-header-bg");
+
+            if (isRo) {
+                headerBg.className = "bg-water-900 text-white p-5 flex items-center justify-between";
+            } else {
+                headerBg.className = "bg-emerald-900 text-white p-5 flex items-center justify-between";
+            }
+
+            document.getElementById("modal-title").innerHTML = `<i class="fa-solid fa-pen-to-square text-sky-400"></i> 編輯：${state.activeTab}`;
+            document.getElementById("edit-index").value = index;
+
+            buildFormFields();
+
+            const targetData = state.records[state.activeTab][index];
+            if (targetData) {
+                document.getElementById("form-field-date").value = targetData.date;
+
+                const fields = isRo ? RO_FIELDS : SOFTENER_FIELDS;
+                Object.keys(fields).forEach(key => {
+                    if (key === "date") return;
+
+                    const val = targetData[key] || "";
+                    const cb = document.getElementById(`checkbox-${key}`);
+                    const input = document.getElementById(`input-${key}`);
+
+                    if (val === "✓") {
+                        cb.checked = true;
+                        input.value = "✓";
+                        input.disabled = true;
+                        input.classList.add("bg-slate-100", "text-slate-400");
+                    } else {
+                        cb.checked = false;
+                        input.value = val;
+                        input.disabled = false;
+                        input.classList.remove("bg-slate-100", "text-slate-400");
+                    }
+                });
+            }
+
+            document.getElementById("record-modal").classList.remove("hidden");
+        }
+
+        function closeModal() {
+            document.getElementById("record-modal").classList.add("hidden");
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault();
+
+            const editIndex = parseInt(document.getElementById("edit-index").value);
+            const activeList = state.records[state.activeTab];
+            const isRo = (state.activeTab === "RO純水機保養紀錄");
+            const fields = isRo ? RO_FIELDS : SOFTENER_FIELDS;
+
+            const entryData = {};
+            entryData["date"] = document.getElementById("form-field-date").value;
+
+            Object.keys(fields).forEach(key => {
+                if (key === "date") return;
+                const inputVal = document.getElementById(`input-${key}`).value.trim();
+                entryData[key] = inputVal;
+            });
+
+            if (editIndex >= 0) {
+                activeList[editIndex] = entryData;
+                toast("修改保養紀錄成功！", "success");
+            } else {
+                activeList.unshift(entryData);
+                toast("新增保養紀錄成功！", "success");
+            }
+
+            saveData();
+            closeModal();
+            updateView();
+        }
+
+        function triggerDeleteRecord(index) {
+            showCustomConfirm(
+                "確認刪除？",
+                "您確定要刪除這筆保養歷史紀錄嗎？刪除後無法還原，且本機與雲端同步時將被同步抹除。",
+                function() {
+                    const activeList = state.records[state.activeTab];
+                    activeList.splice(index, 1);
+                    saveData();
+                    updateView();
+                    toast("紀錄已成功刪除！", "success");
+                }
+            );
+        }
+
+        // === GIST 雲端同步核心邏輯 ===
+        function openGistModal() {
+            document.getElementById("gist-token").value = gistConfig.token;
+            document.getElementById("gist-id").value = gistConfig.id;
+            document.getElementById("gist-modal").classList.remove("hidden");
+        }
+
+        function closeGistModal() {
+            document.getElementById("gist-modal").classList.add("hidden");
+        }
+
+        function saveGistConfig() {
+            const token = document.getElementById("gist-token").value.trim();
+            const id = document.getElementById("gist-id").value.trim();
+            
+            gistConfig.token = token;
+            gistConfig.id = id;
+
+            localStorage.setItem("gist_sync_config_v1", JSON.stringify(gistConfig));
+            updateGistBadge();
+            toast("憑證與同步 ID 儲存成功！", "success");
+        }
+
+        function updateGistBadge() {
+            const badge = document.getElementById("cloud-status-badge");
+            if (gistConfig.token && gistConfig.id) {
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-emerald-400 rounded-full animate-pulse"></span>雲端已連結`;
+            } else {
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-slate-500 rounded-full"></span>雲端未設定`;
+            }
+        }
+
+        // 1. 自動建立全新的 Gist (若使用者尚未建立過)
+        async function createNewGist() {
+            const token = document.getElementById("gist-token").value.trim();
+            if (!token) {
+                toast("請先輸入您的 GitHub PAT 金鑰！", "error");
+                return;
+            }
+
+            toast("正在雲端建立新 Gist...", "info");
+
+            const payload = {
+                description: "水質淨化系統保養紀錄備份數據 (RO & Softener)",
+                public: false,
+                files: {
+                    "water_maintenance_data.json": {
+                        "content": JSON.stringify(state.records, null, 2)
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch("https://api.github.com/gists", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `token ${token}`,
+                        "Accept": "application/vnd.github.v3+json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`GitHub 建立失敗：${response.statusText}`);
+                }
+
+                const result = await response.json();
+                gistConfig.token = token;
+                gistConfig.id = result.id;
+                
+                // 存入快取與欄位
+                localStorage.setItem("gist_sync_config_v1", JSON.stringify(gistConfig));
+                document.getElementById("gist-id").value = result.id;
+                updateGistBadge();
+
+                toast("全新 Gist 雲端資料庫建立成功！", "success");
+            } catch (error) {
+                console.error(error);
+                toast(`建立失敗，請檢查權限 token。`, "error");
+            }
+        }
+
+        // 2. 從 Gist 拉取數據覆蓋本地 (Pull)
+        async function pullFromGist() {
+            const token = document.getElementById("gist-token").value.trim();
+            const id = document.getElementById("gist-id").value.trim();
+
+            if (!token || !id) {
+                toast("請輸入 Token 與 Gist ID！", "error");
+                return;
+            }
+
+            toast("正在從雲端抓取資料...", "info");
+
+            try {
+                const response = await fetch(`https://api.github.com/gists/${id}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `token ${token}`,
+                        "Accept": "application/vnd.github.v3+json"
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error("抓取失敗，請確認 Token 與 Gist ID 是否正確。");
+                }
+
+                const result = await response.json();
+                const fileObj = result.files["water_maintenance_data.json"];
+                
+                if (!fileObj || !fileObj.content) {
+                    throw new Error("找不到對應的保養紀錄 JSON 檔。");
+                }
+
+                const cloudRecords = JSON.parse(fileObj.content);
+                
+                // 覆蓋並儲存
+                state.records = cloudRecords;
+                saveData();
+                updateView();
+                closeGistModal();
+                toast("雲端保養紀錄載入成功！", "success");
+            } catch (error) {
+                console.error(error);
+                toast(error.message || "同步失敗", "error");
+            }
+        }
+
+        // 3. 上傳備份本地資料至 Gist (Push)
+        async function pushToGist() {
+            const token = document.getElementById("gist-token").value.trim();
+            const id = document.getElementById("gist-id").value.trim();
+
+            if (!token || !id) {
+                toast("請輸入 Token 與 Gist ID！", "error");
+                return;
+            }
+
+            toast("正在上傳備份至雲端...", "info");
+
+            const payload = {
+                files: {
+                    "water_maintenance_data.json": {
+                        "content": JSON.stringify(state.records, null, 2)
+                    }
+                }
+            };
+
+            try {
+                const response = await fetch(`https://api.github.com/gists/${id}`, {
+                    method: "PATCH",
+                    headers: {
+                        "Authorization": `token ${token}`,
+                        "Accept": "application/vnd.github.v3+json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error("雲端上傳失敗，請確認 Token 權限。");
+                }
+
+                toast("保養紀錄備份至 Gist 成功！", "success");
+                closeGistModal();
+            } catch (error) {
+                console.error(error);
+                toast(error.message || "上傳失敗", "error");
+            }
+        }
+
+        function exportToCSV() {
+            const activeData = state.records[state.activeTab] || [];
+            if (activeData.length === 0) {
+                toast("當前分頁無任何數據可導出！", "error");
+                return;
+            }
+
+            const sortedData = [...activeData].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const fields = state.activeTab === "RO純水機保養紀錄" ? RO_FIELDS : SOFTENER_FIELDS;
+
+            const headerKeys = Object.keys(fields);
+            const headerLabels = Object.values(fields);
+
+            let csvContent = "\uFEFF"; 
+            csvContent += headerLabels.join(",") + "\n";
+
+            sortedData.forEach(row => {
+                let rowData = headerKeys.map(key => {
+                    let val = row[key] !== undefined ? String(row[key]) : "";
+                    if (val.includes(",") || val.includes('"') || val.includes("\n")) {
+                        val = `"${val.replace(/"/g, '""')}"`;
+                    }
+                    return val;
+                });
+                csvContent += rowData.join(",") + "\n";
+            });
+
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `${state.activeTab}.csv`);
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            toast(`備份導出成功 [${state.activeTab}.csv]`, "success");
+        }
+
+        // 浮動提示框 (防爆通知系統)
+        function toast(message, type = "success") {
+            const oldToast = document.getElementById("app-toast");
+            if (oldToast) oldToast.remove();
+
+            const toastEl = document.createElement("div");
+            toastEl.id = "app-toast";
+
+            let bgClass = "bg-slate-900 text-sky-400 border border-sky-500/20";
+            let icon = "fa-circle-check text-sky-400";
+            if (type === "error") {
+                bgClass = "bg-rose-950 text-rose-300 border border-rose-500/20";
+                icon = "fa-circle-exclamation text-rose-400";
+            } else if (type === "info") {
+                bgClass = "bg-indigo-950 text-indigo-300 border border-indigo-500/20";
+                icon = "fa-circle-info text-indigo-400";
+            }
+
+            toastEl.className = `fixed bottom-5 right-5 z-50 flex items-center space-x-3 px-6 py-4 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-10 opacity-0 ${bgClass}`;
+            toastEl.innerHTML = `
+                <i class="fa-solid ${icon} text-lg"></i>
+                <span class="text-sm font-semibold text-white">${message}</span>
+            `;
+
+            document.body.appendChild(toastEl);
+
+            setTimeout(() => {
+                toastEl.classList.remove("translate-y-10", "opacity-0");
+            }, 50);
+
+            setTimeout(() => {
+                toastEl.classList.add("translate-y-10", "opacity-0");
+                setTimeout(() => {
+                    toastEl.remove();
+                }, 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
