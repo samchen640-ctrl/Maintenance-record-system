@@ -2,7 +2,7 @@
 <html lang="zh-TW" class="h-full bg-slate-50 text-slate-900">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>水質淨化系統保養紀錄管理</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -34,49 +34,75 @@
         }
     </script>
     <style>
+        /* 自訂滾動條 */
         ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+            width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
             background: #f1f5f9;
         }
         ::-webkit-scrollbar-thumb {
             background: #cbd5e1;
-            border-radius: 4px;
+            border-radius: 3px;
         }
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+        /* 優化行動端點擊與滾動 */
+        input, button, select, textarea {
+            -webkit-tap-highlight-color: transparent;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
-<body class="h-full flex flex-col font-sans transition-all duration-300">
+<body class="h-full flex flex-col font-sans transition-all duration-300 antialiased overflow-x-hidden">
 
-    <!-- HEADER -->
-    <header class="bg-gradient-to-r from-water-900 via-indigo-950 to-slate-950 text-white shadow-xl">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                <div class="flex items-center space-x-4">
-                    <div class="bg-water-500/20 p-3 rounded-2xl border border-water-500/30">
-                        <i class="fa-solid fa-droplet text-3xl text-sky-400"></i>
+    <header class="bg-gradient-to-r from-water-900 via-indigo-950 to-slate-950 text-white shadow-xl sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+            <div class="flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-water-500/20 p-2 sm:p-3 rounded-xl border border-water-500/30">
+                            <i class="fa-solid fa-droplet text-2xl sm:text-3xl text-sky-400"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg sm:text-xl md:text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-sky-200 bg-clip-text text-transparent">
+                                水質淨化保養紀錄系統
+                            </h1>
+                            <p class="hidden sm:block text-xs text-slate-400 mt-1">完全對照原始圖片規格 • 本地安全儲存 • GitHub Gist 雲端雙向自動備份</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-slate-100 to-sky-200 bg-clip-text text-transparent">
-                            RO純水機與軟水機保養紀錄系統
-                        </h1>
-                        <p class="text-xs text-slate-400 mt-1">完全對照原始圖片附件表格規格 • 本地安全儲存 • GitHub Gist 雲端雙向備份</p>
+                    
+                    <!-- 行動版設定按鈕與主狀態燈 -->
+                    <div class="flex items-center space-x-2">
+                        <span id="cloud-status-badge" class="inline-flex items-center px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">
+                            <span class="w-1.5 h-1.5 mr-1 bg-slate-500 rounded-full"></span>
+                            <span class="hidden sm:inline">雲端同步：</span>未設定
+                        </span>
+                        <button onclick="openGistModal()" class="p-2 text-sky-400 hover:text-sky-300 transition bg-slate-800 hover:bg-slate-700 rounded-lg border border-slate-700" title="雲端 Gist 設定">
+                            <i class="fa-solid fa-cloud-gear text-sm sm:text-base"></i>
+                        </button>
                     </div>
                 </div>
-                
-                <div class="flex items-center space-x-3 text-sm flex-wrap gap-2">
-                    <span id="cloud-status-badge" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">
-                        <span class="w-1.5 h-1.5 mr-1.5 bg-slate-500 rounded-full"></span>
-                        雲端同步：未設定
-                    </span>
-                    <button onclick="openGistModal()" class="text-xs text-sky-400 hover:text-sky-300 transition bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700">
-                        <i class="fa-solid fa-cloud-arrow-up mr-1"></i>雲端 Gist 設定
+
+                <!-- 行動端底部輔助說明與快捷重置 -->
+                <div class="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/60 pt-2 sm:hidden">
+                    <span>📱 支援手機版面觸控與橫滑</span>
+                    <button onclick="triggerResetConfirmation()" class="text-rose-400 hover:text-rose-300 transition flex items-center gap-1">
+                        <i class="fa-solid fa-rotate-left"></i> 重置數據
                     </button>
-                    <button onclick="triggerResetConfirmation()" class="text-xs text-rose-400 hover:text-rose-300 transition bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-lg border border-slate-700">
+                </div>
+                
+                <!-- 桌機端快捷欄位 -->
+                <div class="hidden sm:flex items-center justify-end space-x-3 text-xs">
+                    <button onclick="triggerResetConfirmation()" class="text-rose-400 hover:text-rose-300 transition bg-slate-800/50 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-700">
                         <i class="fa-solid fa-rotate-left mr-1"></i>重置回原始範例
                     </button>
                 </div>
@@ -84,134 +110,142 @@
         </div>
     </header>
 
-    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8 space-y-6 sm:space-y-8">
         
-        <!-- 智能濾心健康度預測儀表板 -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
-                <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-150 pb-3">
+                <h2 class="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-gauge-high text-water-600"></i>
                     智能濾心更換預警與狀態追蹤
                 </h2>
-                <span class="text-xs text-slate-400">系統自動依修訂之最後更換日期計算</span>
+                <span class="text-[10px] sm:text-xs text-slate-400">依最後更換日期自動推算</span>
             </div>
             
             <!-- RO純水機壽命統計 -->
-            <div id="ro-dashboard-section" class="space-y-3">
-                <p class="text-xs font-semibold text-water-700 bg-water-50 px-3 py-1 rounded-md inline-block">RO純水機 (image_9e727d.png 規格)</p>
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-4" id="ro-status-grid">
+            <div id="ro-dashboard-section" class="space-y-2.5">
+                <p class="text-[11px] font-semibold text-water-700 bg-water-50 px-2.5 py-1 rounded-md inline-block">RO純水機 (image_9e727d.png 規格)</p>
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3" id="ro-status-grid">
                     <!-- JS 動態生成 -->
                 </div>
             </div>
 
             <!-- 軟水機壽命統計 -->
-            <div id="softener-dashboard-section" class="space-y-3 pt-2">
-                <p class="text-xs font-semibold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-md inline-block">軟水機水機 (image_9e729a.png 規格)</p>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="softener-status-grid">
+            <div id="softener-dashboard-section" class="space-y-2.5 pt-2">
+                <p class="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md inline-block">軟水機水機 (image_9e729a.png 規格)</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="softener-status-grid">
                     <!-- JS 動態生成 -->
                 </div>
             </div>
         </div>
 
-        <!-- 主要資料管理區 -->
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 space-y-6">
-            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
-                <!-- Tabs 分頁切換 -->
-                <nav id="tabs-container" class="flex flex-col sm:flex-row gap-2" aria-label="Tabs">
-                    <button id="tab-ro-btn" onclick="switchTab('RO純水機保養紀錄')" class="px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-water-600 text-white shadow-md shadow-water-200">
-                        <i class="fa-solid fa-glass-water"></i> <span>RO純水機保養紀錄 (5道過濾)</span>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 sm:p-6 space-y-5">
+            <!-- 橫向滾動 Tabs 容器 (優化行動端，支援手指滑動) -->
+            <div class="border-b border-slate-100 pb-2 sm:pb-4">
+                <nav id="tabs-container" class="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0" aria-label="Tabs">
+                    <button id="tab-ro-btn" onclick="switchTab('RO純水機保養紀錄')" class="flex-none px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-1.5 bg-water-600 text-white shadow-md shadow-water-200">
+                        <i class="fa-solid fa-glass-water text-xs sm:text-sm"></i> <span class="whitespace-nowrap">RO純水機 (5道過濾)</span>
                     </button>
-                    <button id="tab-softener-btn" onclick="switchTab('軟水機水機保養紀錄')" class="px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-slate-100 text-slate-600 hover:bg-slate-200">
-                        <i class="fa-solid fa-soap"></i> <span>軟水機水機保養紀錄</span>
+                    <button id="tab-softener-btn" onclick="switchTab('軟水機水機保養紀錄')" class="flex-none px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200">
+                        <i class="fa-solid fa-soap text-xs sm:text-sm"></i> <span class="whitespace-nowrap">軟水機水機</span>
                     </button>
                 </nav>
+            </div>
 
-                <!-- 操作工具列 -->
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <!-- 搜尋欄 -->
-                    <div class="relative min-w-[180px]">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                        </span>
-                        <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="搜尋日期或紀錄..." class="w-full pl-9 pr-4 py-2 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-water-500 transition-all">
-                    </div>
+            <!-- 搜尋與操作工具列 (在手機端改為上下排列，節省空間) -->
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <!-- 搜尋欄 -->
+                <div class="relative w-full sm:w-64">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none">
+                        <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="搜尋保養日期或紀錄內容..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-water-500 transition-all">
+                </div>
 
-                    <!-- 手動新增按鈕 -->
-                    <button onclick="openAddModal()" class="inline-flex items-center justify-center px-4 py-2 bg-water-600 hover:bg-water-500 text-white rounded-xl text-sm font-medium transition shadow-sm hover:shadow">
-                        <i class="fa-solid fa-plus mr-1.5"></i>手動新增紀錄
+                <!-- 手動操作按鈕 (雙按鈕並排) -->
+                <div class="grid grid-cols-2 gap-2 sm:flex sm:items-center">
+                    <button onclick="openAddModal()" class="inline-flex items-center justify-center px-3 py-2.5 sm:py-2 bg-water-600 hover:bg-water-500 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                        <i class="fa-solid fa-plus mr-1"></i>新增紀錄
                     </button>
 
-                    <button onclick="exportToCSV()" class="inline-flex items-center justify-center px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-medium transition shadow-sm hover:shadow">
-                        <i class="fa-solid fa-file-csv mr-1.5"></i>匯出 CSV
+                    <button onclick="exportToCSV()" class="inline-flex items-center justify-center px-3 py-2.5 sm:py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                        <i class="fa-solid fa-file-csv mr-1"></i>匯出 CSV
                     </button>
                 </div>
             </div>
 
-            <!-- 數據表格區 -->
-            <div class="overflow-x-auto rounded-xl border border-slate-200">
-                <table class="min-w-full divide-y divide-slate-200 text-center text-sm" id="data-table">
-                    <thead class="bg-slate-50" id="table-head">
-                        <!-- 表頭由 JS 依規格填充 -->
-                    </thead>
-                    <tbody class="divide-y divide-slate-200 bg-white text-center" id="table-body">
-                        <!-- 資料列由 JS 依規格填充 -->
-                    </tbody>
-                </table>
+            <div class="relative">
+                <!-- 行動裝置左右滑動提示 -->
+                <div id="mobile-swipe-tip" class="flex sm:hidden items-center justify-center gap-1.5 text-[11px] text-amber-600 bg-amber-50/70 py-1.5 px-3 rounded-lg mb-2 border border-amber-100/50 animate-pulse">
+                    <i class="fa-solid fa-arrows-left-right"></i>
+                    <span>表格可向左右滑動查看完整欄位</span>
+                </div>
+
+                <div class="overflow-x-auto rounded-xl border border-slate-200 -mx-4 sm:mx-0">
+                    <table class="min-w-full divide-y divide-slate-200 text-center text-xs sm:text-sm" id="data-table">
+                        <thead class="bg-slate-50" id="table-head">
+                            <!-- 表頭由 JS 填入 -->
+                        </thead>
+                        <tbody class="divide-y divide-slate-150 bg-white" id="table-body">
+                            <!-- 資料列由 JS 填入 -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <!-- 查無資料提示 -->
-            <div id="no-data-alert" class="hidden flex flex-col items-center justify-center py-12 text-slate-400">
-                <i class="fa-solid fa-folder-open text-4xl mb-3"></i>
-                <p class="text-sm">尚未有任何手動保養紀錄，請點擊「手動新增紀錄」開始登錄！</p>
+            <div id="no-data-alert" class="hidden flex flex-col items-center justify-center py-10 text-slate-400 text-center px-4">
+                <i class="fa-solid fa-folder-open text-3xl mb-2"></i>
+                <p class="text-xs">尚無任何手動保養紀錄，請點擊「新增紀錄」開始登記！</p>
             </div>
 
             <!-- 分頁與數量統計 -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
-                <span class="text-xs text-slate-500 font-medium" id="table-stats-info">
-                    顯示第 1 至 5 筆，共 0 筆資料
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                <span class="text-[11px] sm:text-xs text-slate-500 font-medium text-center" id="table-stats-info">
+                    共 0 筆保養紀錄
                 </span>
-                <div class="inline-flex gap-2" id="pagination-controls">
+                <div class="inline-flex gap-1" id="pagination-controls">
                     <!-- 分頁控制 -->
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- 彈出式手動編輯/新增模組 -->
-    <div id="record-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-xl w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
+    <div id="record-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <!-- 行動端轉為 Bottom Sheet 模式，電腦版維持置中對話盒 -->
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-100 max-w-xl w-full overflow-hidden transform transition-all flex flex-col max-h-[85vh] sm:max-h-[90vh]">
             <!-- 模組 header -->
-            <div id="modal-header-bg" class="bg-water-900 text-white p-5 flex items-center justify-between">
-                <h3 id="modal-title" class="text-lg font-bold flex items-center gap-2">
+            <div id="modal-header-bg" class="bg-water-900 text-white p-4 sm:p-5 flex items-center justify-between sticky top-0">
+                <h3 id="modal-title" class="text-sm sm:text-base font-bold flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square"></i>
-                    <span>手動新增：RO純水機保養紀錄</span>
+                    <span>手動新增紀錄</span>
                 </h3>
-                <button onclick="closeModal()" class="text-slate-300 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-slate-200 hover:text-white transition active:scale-95">
+                    <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
             <!-- 模組表單內容 -->
-            <form id="record-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4 overflow-y-auto flex-grow text-left">
+            <form id="record-form" onsubmit="handleFormSubmit(event)" class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-grow text-left">
                 <input type="hidden" id="edit-index" value="-1">
                 
                 <div class="space-y-1">
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">保養日期 <span class="text-rose-500">*</span></label>
-                    <input type="date" id="form-field-date" required class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-water-500 focus:outline-none">
+                    <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">保養日期 <span class="text-rose-500">*</span></label>
+                    <input type="date" id="form-field-date" required class="w-full px-3 py-3 sm:py-2.5 border border-slate-200 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-water-500 focus:outline-none bg-slate-50">
                 </div>
 
                 <div class="border-t border-slate-100 pt-3">
-                    <p class="text-xs font-bold text-slate-400 mb-3 uppercase tracking-wider">各過濾道狀態標記 (勾選自動填入 "✓"，亦可輸入說明文字)</p>
-                    <div id="form-fields-container" class="space-y-4">
-                        <!-- JS 動態生成對應表格欄位的輸入框 -->
+                    <p class="text-[11px] font-bold text-slate-400 mb-3 uppercase tracking-wider">各過濾道狀態標記 (可勾選 ✓ 或手動輸入文字說明)</p>
+                    <div id="form-fields-container" class="space-y-3">
+                        <!-- JS 動態生成對應欄位輸入框 -->
                     </div>
                 </div>
 
-                <div class="pt-4 border-t border-slate-100 flex items-center justify-end space-x-3">
-                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-medium transition">
+                <!-- 手機版浮動的操作按鈕 -->
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2">
+                    <button type="button" onclick="closeModal()" class="w-1/2 sm:w-auto px-4 py-3 sm:py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">
                         取消
                     </button>
-                    <button type="submit" class="px-5 py-2 bg-water-600 hover:bg-water-500 text-white rounded-xl text-sm font-medium transition shadow-sm">
+                    <button type="submit" class="w-1/2 sm:w-auto px-5 py-3 sm:py-2 bg-water-600 hover:bg-water-500 text-white rounded-xl text-xs font-bold transition shadow-sm">
                         確認儲存
                     </button>
                 </div>
@@ -219,59 +253,58 @@
         </div>
     </div>
 
-    <!-- GitHub Gist 同步模組 -->
-    <div id="gist-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[90vh]">
-            <div class="bg-slate-900 text-white p-5 flex items-center justify-between">
-                <h3 class="text-lg font-bold flex items-center gap-2">
+    <div id="gist-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border border-slate-100 max-w-lg w-full overflow-hidden transform transition-all flex flex-col max-h-[85vh]">
+            <div class="bg-slate-900 text-white p-4 sm:p-5 flex items-center justify-between">
+                <h3 class="text-sm sm:text-base font-bold flex items-center gap-2">
                     <i class="fa-solid fa-cloud"></i>
                     <span>GitHub Gist 雲端同步設定</span>
                 </h3>
-                <button onclick="closeGistModal()" class="text-slate-300 hover:text-white transition">
-                    <i class="fa-solid fa-xmark text-xl"></i>
+                <button onclick="closeGistModal()" class="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-slate-200 hover:text-white transition active:scale-95">
+                    <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <div class="p-6 space-y-4 overflow-y-auto flex-grow text-left text-sm">
-                <div class="bg-blue-50 border border-blue-200 text-blue-800 p-3.5 rounded-xl space-y-1.5">
+            <div class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-grow text-left text-xs sm:text-sm">
+                <div class="bg-blue-50 border border-blue-200 text-blue-800 p-3 sm:p-3.5 rounded-xl space-y-1">
                     <p class="font-bold flex items-center gap-1.5 text-xs">
-                        <i class="fa-solid fa-circle-info"></i>這是什麼？
+                        <i class="fa-solid fa-circle-info"></i>自動背景雙向同步：
                     </p>
-                    <p class="text-xs text-blue-700 leading-relaxed">
-                        您可以將所有手動保養紀錄備份至您專屬的 GitHub Gist。設定後即可在多個瀏覽器或手機上無痛同步保養紀錄，不必擔心快取遺失。
+                    <p class="text-[11px] leading-relaxed text-blue-700">
+                        設定完成後，每次**開啟網頁將會自動下載最新紀錄**，且所有**手動增刪修改皆會自動即時寫入雲端**，無縫保障跨裝置數據同步。
                     </p>
                 </div>
 
                 <div class="space-y-3">
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">GitHub Personal Access Token (PAT) <span class="text-rose-500">*</span></label>
-                        <input type="password" id="gist-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-slate-500 focus:outline-none">
-                        <p class="text-[10px] text-slate-400">
-                            需具備 <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">gist</code> 寫入權限。可前往 GitHub Settings 生成。
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">GitHub Personal Access Token (PAT) <span class="text-rose-500">*</span></label>
+                        <input type="password" id="gist-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-slate-500 focus:outline-none">
+                        <p class="text-[10px] text-slate-400 leading-normal">
+                            需具備 <code class="bg-slate-100 px-1 py-0.5 rounded font-mono">gist</code> 權限。可在 GitHub Settings 產生。
                         </p>
                     </div>
 
                     <div class="space-y-1">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">Gist ID (選填)</label>
-                        <input type="text" id="gist-id" placeholder="如果不填，點擊「自動建檔」會為您建立全新的 Gist" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-slate-500 focus:outline-none">
+                        <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">Gist ID (選填)</label>
+                        <input type="text" id="gist-id" placeholder="不填可直接點擊「一鍵自動建檔」" class="w-full px-3 py-2.5 border border-slate-200 rounded-xl text-xs font-mono focus:ring-2 focus:ring-slate-500 focus:outline-none">
                     </div>
                 </div>
 
                 <div class="pt-4 border-t border-slate-100 flex flex-col gap-2">
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="saveGistConfig()" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+                        <button onclick="saveGistConfig()" class="py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
                             <i class="fa-solid fa-floppy-disk mr-1"></i>儲存憑證
                         </button>
-                        <button onclick="createNewGist()" class="w-full py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                        <button onclick="createNewGist()" class="py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl text-xs font-bold transition shadow-sm">
                             <i class="fa-solid fa-folder-plus mr-1"></i>一鍵自動建檔
                         </button>
                     </div>
                     <div class="grid grid-cols-2 gap-2">
-                        <button onclick="pullFromGist()" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-sm">
-                            <i class="fa-solid fa-cloud-arrow-down mr-1"></i>從 Gist 下載覆蓋
+                        <button onclick="pullFromGist()" class="py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                            <i class="fa-solid fa-cloud-arrow-down mr-1"></i>強制手動下載
                         </button>
-                        <button onclick="pushToGist()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-sm">
-                            <i class="fa-solid fa-cloud-arrow-up mr-1"></i>上傳備份至 Gist
+                        <button onclick="pushToGist()" class="py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-sm">
+                            <i class="fa-solid fa-cloud-arrow-up mr-1"></i>強制手動上傳
                         </button>
                     </div>
                 </div>
@@ -279,21 +312,20 @@
         </div>
     </div>
 
-    <!-- 自訂的高質感確認視窗 (完全取代原生 confirm) -->
     <div id="confirm-modal" class="fixed inset-0 z-[60] hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-sm w-full overflow-hidden transform transition-all p-6 text-center space-y-4">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-rose-50 border border-rose-100">
-                <i class="fa-solid fa-triangle-exclamation text-rose-500 text-xl animate-bounce"></i>
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-100 max-w-sm w-full overflow-hidden transform transition-all p-5 text-center space-y-4">
+            <div class="mx-auto flex items-center justify-center h-11 w-11 rounded-full bg-rose-50 border border-rose-100">
+                <i class="fa-solid fa-triangle-exclamation text-rose-500 text-lg animate-bounce"></i>
             </div>
             <div class="space-y-1">
-                <h3 id="confirm-title" class="text-base font-bold text-slate-800">確認執行操作？</h3>
-                <p id="confirm-message" class="text-xs text-slate-500 leading-relaxed">此項操作無法還原，請確認您要繼續執行。</p>
+                <h3 id="confirm-title" class="text-sm sm:text-base font-bold text-slate-800">確認執行操作？</h3>
+                <p id="confirm-message" class="text-xs text-slate-500 leading-relaxed">此操作無法復原，請確認您要繼續。</p>
             </div>
-            <div class="flex items-center justify-center gap-2">
-                <button id="confirm-cancel-btn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition">
+            <div class="flex items-center justify-center gap-2 pt-1">
+                <button id="confirm-cancel-btn" class="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-bold transition w-1/2">
                     取消
                 </button>
-                <button id="confirm-ok-btn" class="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition shadow-sm shadow-rose-100">
+                <button id="confirm-ok-btn" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition shadow-sm w-1/2">
                     確認
                 </button>
             </div>
@@ -301,15 +333,15 @@
     </div>
 
     <!-- FOOTER -->
-    <footer class="bg-white border-t border-slate-100 text-slate-500 py-6 text-center text-xs mt-auto">
+    <footer class="bg-white border-t border-slate-100 text-slate-400 py-4 text-center text-[10px] mt-auto">
         <div class="max-w-7xl mx-auto px-4 space-y-1">
             <p>© 2026 水質淨化管理系統. All Rights Reserved.</p>
-            <p class="font-mono text-slate-400">💧 精確相容 image_9e727d.png 與 image_9e729a.png 本地與 Gist 備份規格 💧</p>
+            <p class="font-mono text-slate-300">📱 完美支援 image_9e727d.png 與 image_9e729a.png 本地與 Gist 自動同步 📱</p>
         </div>
     </footer>
 
     <script>
-        // 1. 定義圖片附件中完全精確的欄位架構與週期對照
+        // 完全對應圖片規格
         const RO_FIELDS = {
             "date": "日期",
             "ch1": "第1道 ADD-PP棉質濾心 (3個月)",
@@ -320,11 +352,11 @@
         };
 
         const RO_CYCLES = {
-            "ch1": 3,      // 3個月
-            "ch2": 6,      // 6個月
-            "ch3": 6,      // 6個月
-            "ch4": 18,     // 1.5年 (中間值)
-            "ch5": 12      // 1年
+            "ch1": 3,
+            "ch2": 6,
+            "ch3": 6,
+            "ch4": 18, // 取 1.5 年為預期平均值
+            "ch5": 12
         };
 
         const SOFTENER_FIELDS = {
@@ -335,11 +367,11 @@
         };
 
         const SOFTENER_CYCLES = {
-            "pp": 6,       // 6個月
-            "cto": 6       // 6個月
+            "pp": 6,
+            "cto": 6
         };
 
-        // 高仿真預設初始化數據 (符合水處理系統 2026 年初保養歷史)
+        // 高仿真初始化數據 (模擬保養進程)
         const DEFAULT_RECORDS = {
             "RO純水機保養紀錄": [
                 {"date": "2026-06-15", "ch1": "✓", "ch2": "✓", "ch3": "✓", "ch4": "更換加壓膜", "ch5": "✓"},
@@ -354,37 +386,35 @@
             ]
         };
 
-        // 全域狀態管理 (Reactive Application State)
+        // 應用全局響應狀態
         let state = {
             activeTab: "RO純水機保養紀錄",
             records: {},
             searchQuery: "",
             currentPage: 1,
-            pageSize: 10
+            pageSize: 5 // 行動端表格每頁顯示行數減小，體驗更乾淨
         };
 
-        // Gist 配置
         let gistConfig = {
             token: "",
             id: ""
         };
 
-        // 初始化
         window.onload = function() {
             initApp();
         };
 
         function initApp() {
-            // 載入本地紀錄
+            // 讀取本地快取
             const cached = localStorage.getItem("purifier_records_v1");
             if (cached) {
                 state.records = JSON.parse(cached);
             } else {
                 state.records = JSON.parse(JSON.stringify(DEFAULT_RECORDS));
-                saveData(true); // 首次載入略過雲端同步
+                saveData(true); // 首次防同步
             }
 
-            // 載入 Gist 配置
+            // 讀取 Gist 快取
             const cachedGist = localStorage.getItem("gist_sync_config_v1");
             if (cachedGist) {
                 gistConfig = JSON.parse(cachedGist);
@@ -392,27 +422,27 @@
             updateGistBadge();
             updateView();
 
-            // 若憑證設定完畢，開網頁自動從雲端同步最新數據
+            // 若憑證已完整設定，開網頁自動背景讀取 Gist 最新資料
             if (gistConfig.token && gistConfig.id) {
                 autoSyncOnLoad();
             }
         }
 
+        // 數據保存與備份
         function saveData(skipCloud = false) {
             localStorage.setItem("purifier_records_v1", JSON.stringify(state.records));
             
-            // 若有設定雲端憑證，且未指定忽略，則在手動變更後自動靜默上傳備份至 Gist
+            // 已啟用雲端同步時自動在背景默默上傳上傳
             if (!skipCloud && gistConfig.token && gistConfig.id) {
                 pushToGist(true);
             }
         }
 
-        // 自動執行啟動同步
         async function autoSyncOnLoad() {
             await pullFromGist(true);
         }
 
-        // 自訂確認視窗觸發器
+        // 自訂確認框架構
         let activeConfirmCallback = null;
 
         function showCustomConfirm(title, message, onConfirm) {
@@ -422,7 +452,6 @@
             activeConfirmCallback = onConfirm;
         }
 
-        // 綁定確認取消事件
         document.getElementById("confirm-cancel-btn").onclick = function() {
             document.getElementById("confirm-modal").classList.add("hidden");
             activeConfirmCallback = null;
@@ -439,27 +468,25 @@
         function triggerResetConfirmation() {
             showCustomConfirm(
                 "重置至系統範例？",
-                "您確定要清除現有紀錄並還原至系統預設的示範保養數據嗎？（您的本地與雲端資料將同步重置）",
+                "確定要清除現有紀錄並還原至預設數據嗎？（您的本地與雲端Gist資料將一併重置）",
                 function() {
                     state.records = JSON.parse(JSON.stringify(DEFAULT_RECORDS));
                     state.currentPage = 1;
                     state.searchQuery = "";
                     document.getElementById("search-input").value = "";
-                    saveData(); // 會觸發自動寫入雲端
+                    saveData();
                     updateView();
-                    toast("已重置為原始表格範本，並已同步更新至雲端！", "success");
+                    toast("數據重置成功並已自動同步至雲端！", "success");
                 }
             );
         }
 
-        // 根據歷史手動紀錄推算濾心剩餘壽命
         function calculateFiltersLife() {
             const roRecords = state.records["RO純水機保養紀錄"] || [];
             const softRecords = state.records["軟水機水機保養紀錄"] || [];
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // 輔助函式：尋找特定欄位最後有更換/打勾標記的日期
             function getLatestChangeDate(recordsList, fieldKey) {
                 const sorted = [...recordsList].sort((a, b) => new Date(b.date) - new Date(a.date));
                 for (let rec of sorted) {
@@ -471,14 +498,13 @@
                 return null;
             }
 
-            // 計算 RO 各道狀態
             const roStatus = {};
             Object.keys(RO_CYCLES).forEach(key => {
                 const lastDate = getLatestChangeDate(roRecords, key);
                 const cycleMonths = RO_CYCLES[key];
                 
                 if (!lastDate) {
-                    roStatus[key] = { lastDate: "無紀錄", daysLeft: -999, pct: 0, status: "需立即保養" };
+                    roStatus[key] = { lastDate: "無紀錄", daysLeft: -999, pct: 0, status: "需保養" };
                 } else {
                     const nextDueDate = new Date(lastDate);
                     nextDueDate.setMonth(nextDueDate.getMonth() + cycleMonths);
@@ -490,8 +516,8 @@
                     let pct = Math.max(0, Math.min(100, Math.round((diffDays / totalDays) * 100)));
                     
                     let status = "正常";
-                    if (diffDays < 0) status = "已過期";
-                    else if (diffDays <= 15) status = "即期提醒";
+                    if (diffDays < 0) status = "過期";
+                    else if (diffDays <= 15) status = "即期";
 
                     roStatus[key] = {
                         lastDate: formatDateString(lastDate),
@@ -503,14 +529,13 @@
                 }
             });
 
-            // 計算軟水機狀態
             const softStatus = {};
             Object.keys(SOFTENER_CYCLES).forEach(key => {
                 const lastDate = getLatestChangeDate(softRecords, key);
                 const cycleMonths = SOFTENER_CYCLES[key];
 
                 if (!lastDate) {
-                    softStatus[key] = { lastDate: "無紀錄", daysLeft: -999, pct: 0, status: "需立即保養" };
+                    softStatus[key] = { lastDate: "無紀錄", daysLeft: -999, pct: 0, status: "需保養" };
                 } else {
                     const nextDueDate = new Date(lastDate);
                     nextDueDate.setMonth(nextDueDate.getMonth() + cycleMonths);
@@ -522,8 +547,8 @@
                     let pct = Math.max(0, Math.min(100, Math.round((diffDays / totalDays) * 100)));
 
                     let status = "正常";
-                    if (diffDays < 0) status = "已過期";
-                    else if (diffDays <= 15) status = "即期提醒";
+                    if (diffDays < 0) status = "過期";
+                    else if (diffDays <= 15) status = "即期";
 
                     softStatus[key] = {
                         lastDate: formatDateString(lastDate),
@@ -550,7 +575,6 @@
             const roGrid = document.getElementById("ro-status-grid");
             roGrid.innerHTML = "";
             
-            // RO 卡片
             Object.keys(RO_CYCLES).forEach(key => {
                 const item = analysis.ro[key];
                 const displayName = RO_FIELDS[key].replace("第", "第").split(" ")[0]; 
@@ -560,41 +584,40 @@
                 let textClass = "text-emerald-600";
                 let progressBg = "bg-emerald-500";
                 
-                if (item.status === "已過期") {
+                if (item.status === "過期") {
                     badgeClass = "bg-rose-500 text-white animate-pulse";
                     textClass = "text-rose-600 font-bold";
                     progressBg = "bg-rose-500";
-                } else if (item.status === "即期提醒") {
-                    badgeClass = "bg-amber-500 text-slate-900";
-                    textClass = "text-amber-600 font-semibold";
+                } else if (item.status === "即期") {
+                    badgeClass = "bg-amber-500 text-slate-950";
+                    textClass = "text-amber-600 font-bold";
                     progressBg = "bg-amber-500";
                 }
 
                 const card = document.createElement("div");
-                card.className = "bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 flex flex-col justify-between hover:shadow-sm transition";
+                card.className = "bg-slate-50 border border-slate-200/70 rounded-xl p-2.5 sm:p-3.5 flex flex-col justify-between hover:shadow-sm transition";
                 card.innerHTML = `
-                    <div class="space-y-1">
+                    <div class="space-y-0.5 sm:space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-700">${displayName}</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-bold ${badgeClass}">${item.status}</span>
+                            <span class="text-[10px] sm:text-xs font-bold text-slate-800">${displayName}</span>
+                            <span class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-bold ${badgeClass}">${item.status}</span>
                         </div>
-                        <p class="text-[11px] font-semibold text-slate-500 truncate" title="${filterDesc}">${filterDesc}</p>
+                        <p class="text-[10px] sm:text-[11px] font-semibold text-slate-400 truncate" title="${filterDesc}">${filterDesc}</p>
                     </div>
                     
-                    <div class="mt-3 space-y-1.5">
-                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                    <div class="mt-2 sm:mt-3 space-y-1">
+                        <div class="w-full bg-slate-200 h-1 sm:h-1.5 rounded-full overflow-hidden">
                             <div class="h-full ${progressBg} transition-all duration-500" style="width: ${item.pct}%"></div>
                         </div>
-                        <div class="flex items-center justify-between text-[10px]">
-                            <span class="text-slate-400">壽命餘 ${item.pct}%</span>
-                            <span class="${textClass}">${item.daysLeft <= -999 ? "無保養過" : (item.daysLeft < 0 ? `過期 ${Math.abs(item.daysLeft)} 天` : `${item.daysLeft} 天`)}</span>
+                        <div class="flex items-center justify-between text-[9px] sm:text-[10px]">
+                            <span class="text-slate-400">壽命 ${item.pct}%</span>
+                            <span class="${textClass}">${item.daysLeft <= -999 ? "無保養紀錄" : (item.daysLeft < 0 ? `逾期${Math.abs(item.daysLeft)}天` : `剩${item.daysLeft}天`)}</span>
                         </div>
                     </div>
                 `;
                 roGrid.appendChild(card);
             });
 
-            // 軟水機卡片
             const softenerGrid = document.getElementById("softener-status-grid");
             softenerGrid.innerHTML = "";
 
@@ -607,34 +630,34 @@
                 let textClass = "text-emerald-600";
                 let progressBg = "bg-emerald-500";
 
-                if (item.status === "已過期") {
+                if (item.status === "過期") {
                     badgeClass = "bg-rose-500 text-white animate-pulse";
                     textClass = "text-rose-600 font-bold";
                     progressBg = "bg-rose-500";
-                } else if (item.status === "即期提醒") {
-                    badgeClass = "bg-amber-500 text-slate-900";
-                    textClass = "text-amber-600 font-semibold";
+                } else if (item.status === "即期") {
+                    badgeClass = "bg-amber-500 text-slate-950";
+                    textClass = "text-amber-600 font-bold";
                     progressBg = "bg-amber-500";
                 }
 
                 const card = document.createElement("div");
-                card.className = "bg-slate-50 border border-slate-200/60 rounded-xl p-3.5 flex flex-col justify-between hover:shadow-sm transition";
+                card.className = "bg-slate-50 border border-slate-200/70 rounded-xl p-2.5 sm:p-3.5 flex flex-col justify-between hover:shadow-sm transition";
                 card.innerHTML = `
-                    <div class="space-y-1">
+                    <div class="space-y-0.5 sm:space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="text-xs font-bold text-slate-700">${displayName}</span>
-                            <span class="text-[10px] px-1.5 py-0.5 rounded-full font-bold ${badgeClass}">${item.status}</span>
+                            <span class="text-[10px] sm:text-xs font-bold text-slate-800">${displayName}</span>
+                            <span class="text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-full font-bold ${badgeClass}">${item.status}</span>
                         </div>
-                        <p class="text-[11px] font-semibold text-slate-500 truncate" title="${filterDesc}">${filterDesc}</p>
+                        <p class="text-[10px] sm:text-[11px] font-semibold text-slate-400 truncate" title="${filterDesc}">${filterDesc}</p>
                     </div>
 
-                    <div class="mt-3 space-y-1.5">
-                        <div class="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                    <div class="mt-2 sm:mt-3 space-y-1">
+                        <div class="w-full bg-slate-200 h-1 sm:h-1.5 rounded-full overflow-hidden">
                             <div class="h-full ${progressBg} transition-all duration-500" style="width: ${item.pct}%"></div>
                         </div>
-                        <div class="flex items-center justify-between text-[10px]">
-                            <span class="text-slate-400">壽命餘 ${item.pct}%</span>
-                            <span class="${textClass}">${item.daysLeft <= -999 ? "無保養過" : (item.daysLeft < 0 ? `過期 ${Math.abs(item.daysLeft)} 天` : `${item.daysLeft} 天`)}</span>
+                        <div class="flex items-center justify-between text-[9px] sm:text-[10px]">
+                            <span class="text-slate-400">壽命 ${item.pct}%</span>
+                            <span class="${textClass}">${item.daysLeft <= -999 ? "無保養紀錄" : (item.daysLeft < 0 ? `逾期${Math.abs(item.daysLeft)}天` : `剩${item.daysLeft}天`)}</span>
                         </div>
                     </div>
                 `;
@@ -642,6 +665,7 @@
             });
         }
 
+        // 分頁切換
         function switchTab(tabName) {
             state.activeTab = tabName;
             state.currentPage = 1;
@@ -652,11 +676,11 @@
             const tabSoft = document.getElementById("tab-softener-btn");
 
             if (tabName === "RO純水機保養紀錄") {
-                tabRo.className = "px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-water-600 text-white shadow-md shadow-water-200";
-                tabSoft.className = "px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-slate-100 text-slate-600 hover:bg-slate-200";
+                tabRo.className = "flex-none px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-1.5 bg-water-600 text-white shadow-md shadow-water-200";
+                tabSoft.className = "flex-none px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200";
             } else {
-                tabRo.className = "px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-slate-100 text-slate-600 hover:bg-slate-200";
-                tabSoft.className = "px-4 py-2.5 text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-2 bg-water-600 text-white shadow-md shadow-water-200";
+                tabRo.className = "flex-none px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200";
+                tabSoft.className = "flex-none px-4 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition duration-200 focus:outline-none flex items-center space-x-1.5 bg-water-600 text-white shadow-md shadow-water-200";
             }
 
             updateView();
@@ -691,14 +715,14 @@
             const isRo = (state.activeTab === "RO純水機保養紀錄");
             const currentFields = isRo ? RO_FIELDS : SOFTENER_FIELDS;
 
-            // 1. 表頭
+            // 1. 設置表頭
             const thead = document.getElementById("table-head");
             thead.innerHTML = "";
             const trHead = document.createElement("tr");
 
             Object.keys(currentFields).forEach(key => {
                 const th = document.createElement("th");
-                th.className = "px-4 py-4 text-xs font-bold text-slate-700 bg-slate-100 border-b border-slate-200 whitespace-pre-line";
+                th.className = "px-2 sm:px-4 py-3 sm:py-4 text-[10px] sm:text-xs font-bold text-slate-700 bg-slate-150 border-b border-slate-200 whitespace-nowrap sm:whitespace-pre-line";
                 
                 let label = currentFields[key];
                 if (isRo && key !== "date") {
@@ -711,20 +735,27 @@
             });
 
             const thAction = document.createElement("th");
-            thAction.className = "px-4 py-4 text-xs font-bold text-slate-700 bg-slate-100 border-b border-slate-200 text-right";
+            thAction.className = "px-2 sm:px-4 py-3 sm:py-4 text-[10px] sm:text-xs font-bold text-slate-700 bg-slate-150 border-b border-slate-200 text-right";
             thAction.textContent = "管理動作";
             trHead.appendChild(thAction);
             thead.appendChild(trHead);
 
-            // 2. 表身
+            // 2. 設置表身
             const tbody = document.getElementById("table-body");
             tbody.innerHTML = "";
 
             const noDataAlert = document.getElementById("no-data-alert");
             if (totalCount === 0) {
                 noDataAlert.classList.remove("hidden");
+                document.getElementById("mobile-swipe-tip").classList.add("hidden");
             } else {
                 noDataAlert.classList.add("hidden");
+                // 當為行動端且欄位溢出時顯示滑動提示
+                if (window.innerWidth < 640) {
+                    document.getElementById("mobile-swipe-tip").classList.remove("hidden");
+                } else {
+                    document.getElementById("mobile-swipe-tip").classList.add("hidden");
+                }
 
                 paginatedData.forEach(row => {
                     const originalIndex = rawData.indexOf(row);
@@ -733,7 +764,7 @@
 
                     Object.keys(currentFields).forEach(key => {
                         const td = document.createElement("td");
-                        td.className = "px-4 py-3.5 text-sm text-slate-600 border-b border-slate-150 font-medium";
+                        td.className = "px-2 sm:px-4 py-3 sm:py-3.5 text-xs text-slate-600 border-b border-slate-100 font-medium whitespace-nowrap sm:whitespace-normal";
 
                         const cellValue = row[key] || "";
                         
@@ -742,9 +773,9 @@
                             td.textContent = cellValue;
                         } else {
                             if (cellValue === "✓") {
-                                td.innerHTML = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 font-bold border border-emerald-200"><i class="fa-solid fa-check"></i></span>`;
+                                td.innerHTML = `<span class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-50 text-emerald-600 font-bold border border-emerald-100 text-[10px]"><i class="fa-solid fa-check"></i></span>`;
                             } else if (cellValue) {
-                                td.innerHTML = `<span class="inline-block px-2.5 py-1 rounded-lg bg-sky-50 text-sky-800 font-medium text-xs border border-sky-100">${cellValue}</span>`;
+                                td.innerHTML = `<span class="inline-block px-2 py-0.5 rounded-lg bg-sky-50 text-sky-800 font-medium text-[10px] sm:text-xs border border-sky-100">${cellValue}</span>`;
                             } else {
                                 td.innerHTML = `<span class="text-slate-300">-</span>`;
                             }
@@ -752,15 +783,15 @@
                         tr.appendChild(td);
                     });
 
-                    // 編輯刪除
+                    // 動作欄
                     const tdAction = document.createElement("td");
-                    tdAction.className = "px-4 py-3.5 text-sm border-b border-slate-150 text-right space-x-1 whitespace-nowrap";
+                    tdAction.className = "px-2 sm:px-4 py-3 text-xs border-b border-slate-100 text-right space-x-1 whitespace-nowrap";
                     tdAction.innerHTML = `
-                        <button onclick="openEditModal(${originalIndex})" class="text-water-600 hover:text-water-900 transition font-semibold text-xs bg-water-50 hover:bg-water-100 px-2.5 py-1 rounded-lg">
-                            <i class="fa-solid fa-pen-to-square"></i> 編輯
+                        <button onclick="openEditModal(${originalIndex})" class="text-water-600 hover:text-water-900 transition font-semibold text-[11px] bg-water-50 active:bg-water-100 px-2 py-1 rounded-lg">
+                            <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-                        <button onclick="triggerDeleteRecord(${originalIndex})" class="text-rose-600 hover:text-rose-900 transition font-semibold text-xs bg-rose-50 hover:bg-rose-100 px-2.5 py-1 rounded-lg">
-                            <i class="fa-solid fa-trash"></i> 刪除
+                        <button onclick="triggerDeleteRecord(${originalIndex})" class="text-rose-600 hover:text-rose-900 transition font-semibold text-[11px] bg-rose-50 active:bg-rose-100 px-2 py-1 rounded-lg">
+                            <i class="fa-solid fa-trash"></i>
                         </button>
                     `;
                     tr.appendChild(tdAction);
@@ -771,8 +802,8 @@
             const endIdx = Math.min(startIndex + state.pageSize, totalCount);
             document.getElementById("table-stats-info").textContent = 
                 totalCount > 0 
-                ? `顯示第 ${startIndex + 1} 至 ${endIdx} 筆，共 ${totalCount} 筆保養歷史紀錄` 
-                : '顯示第 0 至 0 筆，共 0 筆保養歷史紀錄';
+                ? `顯示 ${startIndex + 1} 至 ${endIdx} 筆，共 ${totalCount} 筆保養歷史紀錄` 
+                : '共 0 筆保養歷史紀錄';
 
             renderPaginationControls(totalPages);
         }
@@ -784,10 +815,10 @@
             if (totalPages <= 1) return;
 
             const prevBtn = document.createElement("button");
-            prevBtn.className = `px-3 py-1.5 text-xs font-bold rounded-lg border ${
+            prevBtn.className = `w-8 h-8 flex items-center justify-center text-xs font-bold rounded-lg border ${
                 state.currentPage === 1 
                 ? "text-slate-300 border-slate-100 cursor-not-allowed" 
-                : "text-slate-600 border-slate-200 hover:bg-slate-50"
+                : "text-slate-600 border-slate-200 hover:bg-slate-50 active:scale-95"
             }`;
             prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
             prevBtn.disabled = (state.currentPage === 1);
@@ -800,10 +831,10 @@
             for (let i = 1; i <= totalPages; i++) {
                 const pageBtn = document.createElement("button");
                 const isCurrent = (i === state.currentPage);
-                pageBtn.className = `px-3 py-1.5 text-xs font-bold rounded-lg ${
+                pageBtn.className = `w-8 h-8 flex items-center justify-center text-xs font-bold rounded-lg ${
                     isCurrent 
                     ? "bg-water-600 text-white shadow-sm shadow-water-200" 
-                    : "text-slate-600 border border-slate-200 hover:bg-slate-50"
+                    : "text-slate-600 border border-slate-200 hover:bg-slate-50 active:scale-95"
                 }`;
                 pageBtn.textContent = i;
                 pageBtn.onclick = () => {
@@ -814,10 +845,10 @@
             }
 
             const nextBtn = document.createElement("button");
-            nextBtn.className = `px-3 py-1.5 text-xs font-bold rounded-lg border ${
+            nextBtn.className = `w-8 h-8 flex items-center justify-center text-xs font-bold rounded-lg border ${
                 state.currentPage === totalPages 
                 ? "text-slate-300 border-slate-100 cursor-not-allowed" 
-                : "text-slate-600 border-slate-200 hover:bg-slate-50"
+                : "text-slate-600 border-slate-200 hover:bg-slate-50 active:scale-95"
             }`;
             nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
             nextBtn.disabled = (state.currentPage === totalPages);
@@ -846,20 +877,27 @@
 
                 const fieldLabel = fields[key];
                 const fieldGroup = document.createElement("div");
-                fieldGroup.className = "p-3 bg-slate-50 rounded-xl border border-slate-200/60 space-y-2";
+                fieldGroup.className = "p-3 sm:p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5";
 
                 fieldGroup.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <label class="block text-xs font-bold text-slate-700">${fieldLabel}</label>
-                        <label class="inline-flex items-center cursor-pointer space-x-1.5">
-                            <input type="checkbox" id="checkbox-${key}" onchange="toggleCheckboxMark('${key}')" class="rounded border-slate-300 text-water-600 focus:ring-water-500 h-4 w-4">
-                            <span class="text-xs text-slate-500 font-medium">標記更換 (✓)</span>
-                        </label>
+                    <div class="flex items-center justify-between cursor-pointer select-none" onclick="triggerToggleField('${key}')">
+                        <label class="block text-xs font-bold text-slate-700 pointer-events-none">${fieldLabel}</label>
+                        <div class="inline-flex items-center space-x-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-sm">
+                            <input type="checkbox" id="checkbox-${key}" onchange="toggleCheckboxMark('${key}')" onclick="event.stopPropagation()" class="rounded border-slate-300 text-water-600 focus:ring-water-500 h-4.5 w-4.5">
+                            <span class="text-[11px] text-slate-500 font-bold pointer-events-none">已保養 (✓)</span>
+                        </div>
                     </div>
-                    <input type="text" id="input-${key}" placeholder="或在此輸入其他備註..." class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-water-500 focus:outline-none bg-white">
+                    <input type="text" id="input-${key}" placeholder="輸入文字備註 (如選填)..." class="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-water-500 focus:outline-none bg-white">
                 `;
                 container.appendChild(fieldGroup);
             });
+        }
+
+        // 行動端直接點擊欄位方框任何地方皆可快速 toggle 勾選
+        function triggerToggleField(key) {
+            const cb = document.getElementById(`checkbox-${key}`);
+            cb.checked = !cb.checked;
+            toggleCheckboxMark(key);
         }
 
         function toggleCheckboxMark(key) {
@@ -881,9 +919,9 @@
             const headerBg = document.getElementById("modal-header-bg");
             
             if (isRo) {
-                headerBg.className = "bg-water-900 text-white p-5 flex items-center justify-between";
+                headerBg.className = "bg-water-900 text-white p-4 sm:p-5 flex items-center justify-between";
             } else {
-                headerBg.className = "bg-emerald-900 text-white p-5 flex items-center justify-between";
+                headerBg.className = "bg-emerald-900 text-white p-4 sm:p-5 flex items-center justify-between";
             }
 
             document.getElementById("modal-title").innerHTML = `<i class="fa-solid fa-plus text-sky-400"></i> 手動登記：${state.activeTab}`;
@@ -895,6 +933,7 @@
 
             buildFormFields();
             document.getElementById("record-modal").classList.remove("hidden");
+            document.body.style.overflow = "hidden"; // 避免滾動穿透
         }
 
         function openEditModal(index) {
@@ -902,9 +941,9 @@
             const headerBg = document.getElementById("modal-header-bg");
 
             if (isRo) {
-                headerBg.className = "bg-water-900 text-white p-5 flex items-center justify-between";
+                headerBg.className = "bg-water-900 text-white p-4 sm:p-5 flex items-center justify-between";
             } else {
-                headerBg.className = "bg-emerald-900 text-white p-5 flex items-center justify-between";
+                headerBg.className = "bg-emerald-900 text-white p-4 sm:p-5 flex items-center justify-between";
             }
 
             document.getElementById("modal-title").innerHTML = `<i class="fa-solid fa-pen-to-square text-sky-400"></i> 編輯：${state.activeTab}`;
@@ -939,10 +978,12 @@
             }
 
             document.getElementById("record-modal").classList.remove("hidden");
+            document.body.style.overflow = "hidden";
         }
 
         function closeModal() {
             document.getElementById("record-modal").classList.add("hidden");
+            document.body.style.overflow = "";
         }
 
         function handleFormSubmit(event) {
@@ -978,7 +1019,7 @@
         function triggerDeleteRecord(index) {
             showCustomConfirm(
                 "確認刪除？",
-                "您確定要刪除這筆保養歷史紀錄嗎？刪除後無法還原，且本機與雲端同步時將被同步抹除。",
+                "確定要刪除這筆保養紀錄嗎？此項操作無法還原，且本機與雲端將一併同步抹除。",
                 function() {
                     const activeList = state.records[state.activeTab];
                     activeList.splice(index, 1);
@@ -989,15 +1030,16 @@
             );
         }
 
-        // === GIST 雲端同步核心邏輯 ===
         function openGistModal() {
             document.getElementById("gist-token").value = gistConfig.token;
             document.getElementById("gist-id").value = gistConfig.id;
             document.getElementById("gist-modal").classList.remove("hidden");
+            document.body.style.overflow = "hidden";
         }
 
         function closeGistModal() {
             document.getElementById("gist-modal").classList.add("hidden");
+            document.body.style.overflow = "";
         }
 
         function saveGistConfig() {
@@ -1009,9 +1051,8 @@
 
             localStorage.setItem("gist_sync_config_v1", JSON.stringify(gistConfig));
             updateGistBadge();
-            toast("憑證與同步 ID 儲存成功！", "success");
+            toast("Gist 憑證與連結資訊儲存成功！", "success");
 
-            // 儲存成功後，立即自動同步一次
             if (token && id) {
                 pullFromGist(true);
             }
@@ -1022,29 +1063,28 @@
             const hasCredentials = (gistConfig.token && gistConfig.id);
 
             if (!hasCredentials) {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-slate-500 rounded-full"></span>雲端同步：未設定`;
+                badge.className = "inline-flex items-center px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1 bg-slate-500 rounded-full"></span><span class="hidden sm:inline">雲端同步：</span>未設定`;
                 return;
             }
 
             if (status === "syncing") {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-sky-400 rounded-full animate-spin"><i class="fa-solid fa-spinner text-[8px]"></i></span>雲端同步中...`;
+                badge.className = "inline-flex items-center px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-sky-500/15 text-sky-400 border border-sky-500/30";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1 bg-sky-400 rounded-full animate-pulse"></span>同步中...`;
             } else if (status === "error") {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-rose-400 rounded-full"></span>同步失敗`;
+                badge.className = "inline-flex items-center px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-rose-500/15 text-rose-400 border border-rose-500/30";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1 bg-rose-400 rounded-full"></span>同步失敗`;
             } else {
-                // 成功或預設
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-emerald-400 rounded-full animate-pulse"></span>雲端已連結`;
+                badge.className = "inline-flex items-center px-2 py-1 rounded-full text-[10px] sm:text-xs font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1 bg-emerald-400 rounded-full animate-pulse"></span>已連線`;
             }
         }
 
-        // 1. 自動建立全新的 Gist (若使用者尚未建立過)
+        // 1. 一鍵建檔
         async function createNewGist() {
             const token = document.getElementById("gist-token").value.trim();
             if (!token) {
-                toast("請先輸入您的 GitHub PAT 金鑰！", "error");
+                toast("請先輸入您的 GitHub PAT 憑證！", "error");
                 return;
             }
 
@@ -1080,30 +1120,29 @@
                 gistConfig.token = token;
                 gistConfig.id = result.id;
                 
-                // 存入快取與欄位
                 localStorage.setItem("gist_sync_config_v1", JSON.stringify(gistConfig));
                 document.getElementById("gist-id").value = result.id;
                 updateGistBadge("success");
 
-                toast("全新 Gist 雲端資料庫建立成功！", "success");
+                toast("全新 Gist 雲端資料庫建立並自動綁定！", "success");
             } catch (error) {
                 console.error(error);
                 updateGistBadge("error");
-                toast(`建立失敗，請檢查權限 token。`, "error");
+                toast(`建立失敗，請檢查 Token 與權限。`, "error");
             }
         }
 
-        // 2. 從 Gist 拉取數據覆蓋本地 (Pull)
+        // 2. 背景與手動下載 (Pull)
         async function pullFromGist(silent = false) {
             const token = gistConfig.token || document.getElementById("gist-token").value.trim();
             const id = gistConfig.id || document.getElementById("gist-id").value.trim();
 
             if (!token || !id) {
-                if (!silent) toast("請輸入 Token 與 Gist ID！", "error");
+                if (!silent) toast("請設定 Token 與 Gist ID！", "error");
                 return;
             }
 
-            if (!silent) toast("正在從雲端抓取資料...", "info");
+            if (!silent) toast("從雲端載入最新保養數據...", "info");
             updateGistBadge("syncing");
 
             try {
@@ -1123,22 +1162,21 @@
                 const fileObj = result.files["water_maintenance_data.json"];
                 
                 if (!fileObj || !fileObj.content) {
-                    throw new Error("找不到對應的保養紀錄 JSON 檔。");
+                    throw new Error("找不到保養紀錄 JSON 檔。");
                 }
 
                 const cloudRecords = JSON.parse(fileObj.content);
                 
-                // 覆蓋並儲存 (傳入 true 避免在 pull 時又觸發推送到雲端)
                 state.records = cloudRecords;
-                saveData(true); 
+                saveData(true); // 避免 pull 再次觸發 push 造成死循環
                 updateView();
                 closeGistModal();
                 updateGistBadge("success");
 
                 if (!silent) {
-                    toast("雲端保養紀錄載入成功！", "success");
+                    toast("雲端備份載入成功！", "success");
                 } else {
-                    toast("已自動同步雲端最新保養紀錄！", "success");
+                    toast("已自動完成雲端數據同步！", "success");
                 }
             } catch (error) {
                 console.error(error);
@@ -1147,17 +1185,17 @@
             }
         }
 
-        // 3. 上傳備份本地資料至 Gist (Push)
+        // 3. 上傳備份 (Push)
         async function pushToGist(silent = false) {
             const token = gistConfig.token || document.getElementById("gist-token").value.trim();
             const id = gistConfig.id || document.getElementById("gist-id").value.trim();
 
             if (!token || !id) {
-                if (!silent) toast("請輸入 Token 與 Gist ID！", "error");
+                if (!silent) toast("請設定 Token 與 Gist ID！", "error");
                 return;
             }
 
-            if (!silent) toast("正在上傳備份至雲端...", "info");
+            if (!silent) toast("保養紀錄備份至雲端中...", "info");
             updateGistBadge("syncing");
 
             const payload = {
@@ -1198,7 +1236,7 @@
         function exportToCSV() {
             const activeData = state.records[state.activeTab] || [];
             if (activeData.length === 0) {
-                toast("當前分頁無任何數據可導出！", "error");
+                toast("目前分頁尚無資料可以導出！", "error");
                 return;
             }
 
@@ -1232,10 +1270,10 @@
             link.click();
             document.body.removeChild(link);
 
-            toast(`備份導出成功 [${state.activeTab}.csv]`, "success");
+            toast(`導出 [${state.activeTab}.csv] 成功！`, "success");
         }
 
-        // 浮動提示框 (防爆通知系統)
+        // 高質感 Toast 通知系統 (自動依行動裝置與電腦版調整最佳位置)
         function toast(message, type = "success") {
             const oldToast = document.getElementById("app-toast");
             if (oldToast) oldToast.remove();
@@ -1253,10 +1291,11 @@
                 icon = "fa-circle-info text-indigo-400";
             }
 
-            toastEl.className = `fixed bottom-5 right-5 z-50 flex items-center space-x-3 px-6 py-4 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-10 opacity-0 ${bgClass}`;
+            // 行動版置中、桌機版右下角
+            toastEl.className = `fixed bottom-6 left-4 right-4 sm:left-auto sm:right-6 sm:w-80 z-50 flex items-center space-x-3 px-5 py-4 rounded-2xl shadow-2xl transition-all duration-300 transform translate-y-10 opacity-0 ${bgClass}`;
             toastEl.innerHTML = `
-                <i class="fa-solid ${icon} text-lg"></i>
-                <span class="text-sm font-semibold text-white">${message}</span>
+                <i class="fa-solid ${icon} text-base sm:text-lg"></i>
+                <span class="text-xs sm:text-sm font-semibold text-white leading-normal">${message}</span>
             `;
 
             document.body.appendChild(toastEl);
