@@ -381,7 +381,7 @@
                 state.records = JSON.parse(cached);
             } else {
                 state.records = JSON.parse(JSON.stringify(DEFAULT_RECORDS));
-                saveData();
+                saveData(true); // 首次載入略過雲端同步
             }
 
             // 載入 Gist 配置
@@ -391,10 +391,25 @@
             }
             updateGistBadge();
             updateView();
+
+            // 若憑證設定完畢，開網頁自動從雲端同步最新數據
+            if (gistConfig.token && gistConfig.id) {
+                autoSyncOnLoad();
+            }
         }
 
-        function saveData() {
+        function saveData(skipCloud = false) {
             localStorage.setItem("purifier_records_v1", JSON.stringify(state.records));
+            
+            // 若有設定雲端憑證，且未指定忽略，則在手動變更後自動靜默上傳備份至 Gist
+            if (!skipCloud && gistConfig.token && gistConfig.id) {
+                pushToGist(true);
+            }
+        }
+
+        // 自動執行啟動同步
+        async function autoSyncOnLoad() {
+            await pullFromGist(true);
         }
 
         // 自訂確認視窗觸發器
@@ -424,15 +439,15 @@
         function triggerResetConfirmation() {
             showCustomConfirm(
                 "重置至系統範例？",
-                "您確定要清除現有紀錄並還原至系統預設的示範保養數據嗎？（您的本地變更與新增資料將會丟失）",
+                "您確定要清除現有紀錄並還原至系統預設的示範保養數據嗎？（您的本地與雲端資料將同步重置）",
                 function() {
                     state.records = JSON.parse(JSON.stringify(DEFAULT_RECORDS));
                     state.currentPage = 1;
                     state.searchQuery = "";
                     document.getElementById("search-input").value = "";
-                    saveData();
+                    saveData(); // 會觸發自動寫入雲端
                     updateView();
-                    toast("已重置為原始表格範本！", "success");
+                    toast("已重置為原始表格範本，並已同步更新至雲端！", "success");
                 }
             );
         }
@@ -995,16 +1010,33 @@
             localStorage.setItem("gist_sync_config_v1", JSON.stringify(gistConfig));
             updateGistBadge();
             toast("憑證與同步 ID 儲存成功！", "success");
+
+            // 儲存成功後，立即自動同步一次
+            if (token && id) {
+                pullFromGist(true);
+            }
         }
 
-        function updateGistBadge() {
+        function updateGistBadge(status = "") {
             const badge = document.getElementById("cloud-status-badge");
-            if (gistConfig.token && gistConfig.id) {
+            const hasCredentials = (gistConfig.token && gistConfig.id);
+
+            if (!hasCredentials) {
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-slate-500 rounded-full"></span>雲端同步：未設定`;
+                return;
+            }
+
+            if (status === "syncing") {
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-sky-500/10 text-sky-400 border border-sky-500/20";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-sky-400 rounded-full animate-spin"><i class="fa-solid fa-spinner text-[8px]"></i></span>雲端同步中...`;
+            } else if (status === "error") {
+                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-rose-400 rounded-full"></span>同步失敗`;
+            } else {
+                // 成功或預設
                 badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
                 badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-emerald-400 rounded-full animate-pulse"></span>雲端已連結`;
-            } else {
-                badge.className = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700";
-                badge.innerHTML = `<span class="w-1.5 h-1.5 mr-1.5 bg-slate-500 rounded-full"></span>雲端未設定`;
             }
         }
 
@@ -1017,6 +1049,7 @@
             }
 
             toast("正在雲端建立新 Gist...", "info");
+            updateGistBadge("syncing");
 
             const payload = {
                 description: "水質淨化系統保養紀錄備份數據 (RO & Softener)",
@@ -1050,26 +1083,28 @@
                 // 存入快取與欄位
                 localStorage.setItem("gist_sync_config_v1", JSON.stringify(gistConfig));
                 document.getElementById("gist-id").value = result.id;
-                updateGistBadge();
+                updateGistBadge("success");
 
                 toast("全新 Gist 雲端資料庫建立成功！", "success");
             } catch (error) {
                 console.error(error);
+                updateGistBadge("error");
                 toast(`建立失敗，請檢查權限 token。`, "error");
             }
         }
 
         // 2. 從 Gist 拉取數據覆蓋本地 (Pull)
-        async function pullFromGist() {
-            const token = document.getElementById("gist-token").value.trim();
-            const id = document.getElementById("gist-id").value.trim();
+        async function pullFromGist(silent = false) {
+            const token = gistConfig.token || document.getElementById("gist-token").value.trim();
+            const id = gistConfig.id || document.getElementById("gist-id").value.trim();
 
             if (!token || !id) {
-                toast("請輸入 Token 與 Gist ID！", "error");
+                if (!silent) toast("請輸入 Token 與 Gist ID！", "error");
                 return;
             }
 
-            toast("正在從雲端抓取資料...", "info");
+            if (!silent) toast("正在從雲端抓取資料...", "info");
+            updateGistBadge("syncing");
 
             try {
                 const response = await fetch(`https://api.github.com/gists/${id}`, {
@@ -1093,29 +1128,37 @@
 
                 const cloudRecords = JSON.parse(fileObj.content);
                 
-                // 覆蓋並儲存
+                // 覆蓋並儲存 (傳入 true 避免在 pull 時又觸發推送到雲端)
                 state.records = cloudRecords;
-                saveData();
+                saveData(true); 
                 updateView();
                 closeGistModal();
-                toast("雲端保養紀錄載入成功！", "success");
+                updateGistBadge("success");
+
+                if (!silent) {
+                    toast("雲端保養紀錄載入成功！", "success");
+                } else {
+                    toast("已自動同步雲端最新保養紀錄！", "success");
+                }
             } catch (error) {
                 console.error(error);
-                toast(error.message || "同步失敗", "error");
+                updateGistBadge("error");
+                if (!silent) toast(error.message || "同步失敗", "error");
             }
         }
 
         // 3. 上傳備份本地資料至 Gist (Push)
-        async function pushToGist() {
-            const token = document.getElementById("gist-token").value.trim();
-            const id = document.getElementById("gist-id").value.trim();
+        async function pushToGist(silent = false) {
+            const token = gistConfig.token || document.getElementById("gist-token").value.trim();
+            const id = gistConfig.id || document.getElementById("gist-id").value.trim();
 
             if (!token || !id) {
-                toast("請輸入 Token 與 Gist ID！", "error");
+                if (!silent) toast("請輸入 Token 與 Gist ID！", "error");
                 return;
             }
 
-            toast("正在上傳備份至雲端...", "info");
+            if (!silent) toast("正在上傳備份至雲端...", "info");
+            updateGistBadge("syncing");
 
             const payload = {
                 files: {
@@ -1140,11 +1183,15 @@
                     throw new Error("雲端上傳失敗，請確認 Token 權限。");
                 }
 
-                toast("保養紀錄備份至 Gist 成功！", "success");
-                closeGistModal();
+                updateGistBadge("success");
+                if (!silent) {
+                    toast("保養紀錄備份至 Gist 成功！", "success");
+                    closeGistModal();
+                }
             } catch (error) {
                 console.error(error);
-                toast(error.message || "上傳失敗", "error");
+                updateGistBadge("error");
+                if (!silent) toast(error.message || "上傳失敗", "error");
             }
         }
 
